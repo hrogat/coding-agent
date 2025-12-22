@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Agent - AI Assistant</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Coding Agent</h1>
+            <p class="subtitle">AI-Powered Coding Assistant with Mistral AI</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="prompt">Your Coding Task:</label>
+                    <textarea 
+                        id="prompt" 
+                        placeholder="Describe your coding task... (e.g., 'Create a Java function to sort a list', 'Analyze my code for performance issues', 'Fix the bug in my authentication logic')"
+                        rows="6"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="directoryPath">Directory Path (Optional):</label>
+                    <input 
+                        type="text" 
+                        id="directoryPath" 
+                        placeholder="/path/to/your/project (provides context to the agent)">
+                    <small class="help-text">Provide a directory path to give the agent context about your project files</small>
+                </div>
+
+                <button id="submitBtn" class="submit-btn">
+                    <span class="btn-text">Submit Request</span>
+                    <span class="spinner" style="display: none;">⏳</span>
+                </button>
+            </div>
+
+            <div id="resultSection" class="result-section" style="display: none;">
+                <div class="result-header">
+                    <h2>Response</h2>
+                    <div class="agent-info">
+                        <span class="agent-badge" id="agentType"></span>
+                        <span class="reasoning" id="reasoning"></span>
+                    </div>
+                </div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+
+            <div id="errorSection" class="error-section" style="display: none;">
+                <h3>❌ Error</h3>
+                <p id="errorMessage"></p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <strong>Mistral AI</strong> | Built with <strong>Spring Boot</strong></p>
+        </footer>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
