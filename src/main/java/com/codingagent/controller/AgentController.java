@@ -25,8 +25,8 @@ public class AgentController {
 
     @PostMapping("/process")
     public ResponseEntity<AgentResponse> processRequest(@RequestBody AgentRequest request) {
-        logger.info("Received request with prompt: {} and directory: {}", 
-                    request.getPrompt(), request.getDirectoryPath());
+        logger.info("Received request with prompt: {}, directory: {}, collaboration: {}", 
+                    request.getPrompt(), request.getDirectoryPath(), request.getUseCollaboration());
 
         if (request.getPrompt() == null || request.getPrompt().trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -35,7 +35,8 @@ public class AgentController {
         try {
             AgentResponse response = orchestratorService.processRequest(
                     request.getPrompt(), 
-                    request.getDirectoryPath());
+                    request.getDirectoryPath(),
+                    request.getUseCollaboration());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Error processing request", e);

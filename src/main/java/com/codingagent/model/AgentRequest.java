@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class AgentRequest {
     private String prompt;
     private String directoryPath;
+    private Boolean useCollaboration;
 }

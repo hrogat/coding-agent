@@ -50,10 +50,18 @@ public class OrchestratorService {
     }
 
     public AgentResponse processRequest(String userPrompt, String directoryPath) {
-        logger.info("Processing request: {}", userPrompt);
+        return processRequest(userPrompt, directoryPath, false);
+    }
+
+    public AgentResponse processRequest(String userPrompt, String directoryPath, Boolean useCollaboration) {
+        logger.info("Processing request: {} (collaboration: {})", userPrompt, useCollaboration);
 
         AgentType selectedType = classifyRequest(userPrompt);
         logger.info("Selected agent type: {}", selectedType);
+
+        if (Boolean.TRUE.equals(useCollaboration) && selectedType == AgentType.CODE) {
+            return processWithCollaboration(userPrompt, directoryPath);
+        }
 
         Agent selectedAgent = agents.get(selectedType);
         if (selectedAgent == null) {
@@ -110,5 +118,81 @@ public class OrchestratorService {
             logger.warn("Unable to parse agent type from response: {}. Defaulting to CODE", response);
             return AgentType.CODE;
         }
+    }
+
+    private AgentResponse processWithCollaboration(String userPrompt, String directoryPath) {
+        logger.info("Starting collaborative code generation process");
+
+        String directoryContext = "";
+        if (directoryPath != null && !directoryPath.trim().isEmpty()) {
+            logger.info("Building directory context for: {}", directoryPath);
+            directoryContext = fileSystemService.buildDirectoryContext(directoryPath);
+        }
+
+        Agent codeAgent = agents.get(AgentType.CODE);
+        Agent analyzeAgent = agents.get(AgentType.ANALYZE);
+
+        logger.info("Step 1/3: Generating initial code");
+        String initialCode = codeAgent.execute(userPrompt, directoryContext);
+
+        logger.info("Step 2/3: Analyzing generated code");
+        String analysisPrompt = String.format("""
+            Analyze the following code for:
+            - Code quality and best practices
+            - Security vulnerabilities
+            - Performance issues
+            - Potential bugs
+            - Design patterns and architecture
+            
+            Provide specific, actionable feedback for improvements.
+            
+            Code to analyze:
+            %s
+            """, initialCode);
+        String analysis = analyzeAgent.execute(analysisPrompt, null);
+
+        logger.info("Step 3/3: Refining code based on analysis");
+        String refinementPrompt = String.format("""
+            Improve the following code based on this analysis feedback.
+            Apply all suggested improvements and maintain the FILE: format for file operations.
+            
+            Analysis feedback:
+            %s
+            
+            Original code:
+            %s
+            
+            Provide the improved code with all files in the FILE: format.
+            """, analysis, initialCode);
+        String refinedCode = codeAgent.execute(refinementPrompt, directoryContext);
+
+        List<String> filesWritten = null;
+        Integer fileCount = 0;
+
+        if (fileOperationParser.containsFileOperations(refinedCode)) {
+            logger.info("Detected file operations in refined code, processing...");
+            List<FileWriterService.FileOperation> operations = fileOperationParser.parseFileOperations(refinedCode, directoryPath);
+            
+            if (!operations.isEmpty()) {
+                List<FileWriterService.FileOperation> results = fileWriterService.writeFiles(operations);
+                filesWritten = results.stream()
+                        .filter(FileWriterService.FileOperation::isSuccess)
+                        .map(FileWriterService.FileOperation::getFilePath)
+                        .collect(Collectors.toList());
+                fileCount = filesWritten.size();
+                
+                logger.info("Successfully wrote {} files after collaboration", fileCount);
+            }
+        }
+
+        String combinedResult = refinedCode + "\n\n--- Analysis Report ---\n" + analysis;
+
+        return AgentResponse.builder()
+                .agentType(AgentType.CODE)
+                .result(combinedResult)
+                .reasoning("Collaborative process: Code Generation → Analysis → Refinement")
+                .filesWritten(filesWritten)
+                .fileCount(fileCount)
+                .build();
     }
 }
