@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const promptInput = document.getElementById('prompt');
     const directoryPathInput = document.getElementById('directoryPath');
+    const useCollaborationCheckbox = document.getElementById('useCollaboration');
     const submitBtn = document.getElementById('submitBtn');
     const btnText = submitBtn.querySelector('.btn-text');
     const spinner = submitBtn.querySelector('.spinner');
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function handleSubmit() {
         const prompt = promptInput.value.trim();
         const directoryPath = directoryPathInput.value.trim();
+        const useCollaboration = useCollaborationCheckbox.checked;
 
         if (!prompt) {
             showError('Please enter a prompt');
@@ -39,7 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     prompt: prompt,
-                    directoryPath: directoryPath || null
+                    directoryPath: directoryPath || null,
+                    useCollaboration: useCollaboration
                 })
             });
 

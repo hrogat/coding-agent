@@ -100,6 +100,30 @@ input[type="text"]:focus {
     color: var(--text-secondary);
 }
 
+.checkbox-group {
+    margin-bottom: 1.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-label span {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
 .submit-btn {
     width: 100%;
     padding: 1rem 2rem;
