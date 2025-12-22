@@ -13,6 +13,7 @@ An orchestrator automatically routes requests to the appropriate agent based on 
 - **Intelligent Agent Routing**: Automatically classifies tasks and routes to the appropriate agent
 - **Directory Context**: Agents can access and analyze files in a specified directory
 - **File System Integration**: Automatically reads project structure and file contents for context-aware responses
+- **File Writing Capability**: Agents can automatically create and modify files on the filesystem
 
 ## Prerequisites
 

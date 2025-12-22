@@ -22,6 +22,8 @@ public class OrchestratorService {
     private final ChatModel chatModel;
     private final Map<AgentType, Agent> agents;
     private final FileSystemService fileSystemService;
+    private final FileWriterService fileWriterService;
+    private final FileOperationParser fileOperationParser;
 
     private static final String CLASSIFICATION_PROMPT = """
             You are a task classifier. Analyze the following user request and determine which type of coding agent should handle it.
@@ -36,9 +38,12 @@ public class OrchestratorService {
             Respond with ONLY one word: ANALYZE, CODE, or BUGFIX
             """;
 
-    public OrchestratorService(ChatModel chatModel, List<Agent> agentList, FileSystemService fileSystemService) {
+    public OrchestratorService(ChatModel chatModel, List<Agent> agentList, FileSystemService fileSystemService,
+                               FileWriterService fileWriterService, FileOperationParser fileOperationParser) {
         this.chatModel = chatModel;
         this.fileSystemService = fileSystemService;
+        this.fileWriterService = fileWriterService;
+        this.fileOperationParser = fileOperationParser;
         this.agents = agentList.stream()
                 .collect(Collectors.toMap(Agent::getType, Function.identity()));
         logger.info("OrchestratorService initialized with {} agents", agents.size());
@@ -64,10 +69,31 @@ public class OrchestratorService {
 
         String result = selectedAgent.execute(userPrompt, directoryContext);
 
+        List<String> filesWritten = null;
+        Integer fileCount = 0;
+
+        if (fileOperationParser.containsFileOperations(result)) {
+            logger.info("Detected file operations in AI response, processing...");
+            List<FileWriterService.FileOperation> operations = fileOperationParser.parseFileOperations(result, directoryPath);
+            
+            if (!operations.isEmpty()) {
+                List<FileWriterService.FileOperation> results = fileWriterService.writeFiles(operations);
+                filesWritten = results.stream()
+                        .filter(FileWriterService.FileOperation::isSuccess)
+                        .map(FileWriterService.FileOperation::getFilePath)
+                        .collect(Collectors.toList());
+                fileCount = filesWritten.size();
+                
+                logger.info("Successfully wrote {} files", fileCount);
+            }
+        }
+
         return AgentResponse.builder()
                 .agentType(selectedType)
                 .result(result)
                 .reasoning("Request classified as " + selectedType + " task")
+                .filesWritten(filesWritten)
+                .fileCount(fileCount)
                 .build();
     }
 
