@@ -78,6 +78,21 @@ document.addEventListener('DOMContentLoaded', function() {
         agentTypeElement.className = `agent-badge ${data.agentType}`;
         reasoningElement.textContent = data.reasoning;
         
+        const filesWrittenSection = document.getElementById('filesWrittenSection');
+        const filesWrittenList = document.getElementById('filesWrittenList');
+        
+        if (data.filesWritten && data.filesWritten.length > 0) {
+            filesWrittenList.innerHTML = '';
+            data.filesWritten.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file;
+                filesWrittenList.appendChild(li);
+            });
+            filesWrittenSection.style.display = 'block';
+        } else {
+            filesWrittenSection.style.display = 'none';
+        }
+        
         const formattedContent = formatMarkdown(data.result);
         resultContentElement.innerHTML = formattedContent;
 
