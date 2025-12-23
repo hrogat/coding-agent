@@ -10,6 +10,7 @@ server:
 
 coding-agent:
   backend-url: http://localhost:8080
+  timeout-minutes: 35
 
 logging:
   level:
