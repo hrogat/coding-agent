@@ -37,7 +37,7 @@ public class BugfixAgent implements Agent {
 
     @Override
     public String execute(String prompt, String directoryContext) {
-        logger.debug("BugfixAgent executing with prompt: {}", prompt);
+        logger.info("🐞 BugfixAgent starting debugging...");
         
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(SYSTEM_PROMPT);
         String systemMessage = systemPromptTemplate.render();
@@ -50,10 +50,41 @@ public class BugfixAgent implements Agent {
         
         fullPromptText.append("\n\nUser request: ").append(prompt);
         
+        logger.info("⏳ Streaming AI debugging...");
         Prompt fullPrompt = new Prompt(fullPromptText.toString());
-        String result = chatModel.call(fullPrompt).getResult().getOutput().getContent();
         
-        logger.debug("BugfixAgent result: {}", result);
-        return result;
+        StringBuilder result = new StringBuilder();
+        StringBuilder lineBuffer = new StringBuilder();
+        
+        chatModel.stream(fullPrompt).doOnNext(chatResponse -> {
+            String content = chatResponse.getResult().getOutput().getContent();
+            result.append(content);
+            lineBuffer.append(content);
+            
+            if (lineBuffer.toString().contains("\n")) {
+                String[] lines = lineBuffer.toString().split("\n", -1);
+                for (int i = 0; i < lines.length - 1; i++) {
+                    String line = lines[i];
+                    if (line.length() > 120) {
+                        line = line.substring(0, 120) + "...";
+                    }
+                    logger.info("  🔧 {}", line);
+                }
+                lineBuffer.setLength(0);
+                lineBuffer.append(lines[lines.length - 1]);
+            }
+        }).blockLast();
+        
+        if (lineBuffer.length() > 0) {
+            String line = lineBuffer.toString();
+            if (line.length() > 120) {
+                line = line.substring(0, 120) + "...";
+            }
+            logger.info("  🔧 {}", line);
+        }
+        
+        String finalResult = result.toString();
+        logger.info("✓ Debugging complete (length: {} chars)", finalResult.length());
+        return finalResult;
     }
 }

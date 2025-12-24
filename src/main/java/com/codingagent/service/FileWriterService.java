@@ -59,10 +59,13 @@ public class FileWriterService {
             logger.warn("File already exists, will overwrite: {}", path);
         }
 
+        logger.info("Creating file: {} (size: {} bytes)", path, content.length());
+        logContentPreview(path.toString(), content);
+
         Files.createDirectories(path.getParent());
         Files.writeString(path, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        logger.info("Created file: {}", path);
+        logger.info("✓ Created file: {}", path);
         return FileOperation.builder()
                 .filePath(path.toString())
                 .content(content)
@@ -77,9 +80,12 @@ public class FileWriterService {
             return createFile(path, content);
         }
 
+        logger.info("Updating file: {} (size: {} bytes)", path, content.length());
+        logContentPreview(path.toString(), content);
+
         Files.writeString(path, content, StandardOpenOption.TRUNCATE_EXISTING);
 
-        logger.info("Updated file: {}", path);
+        logger.info("✓ Updated file: {}", path);
         return FileOperation.builder()
                 .filePath(path.toString())
                 .content(content)
@@ -101,7 +107,7 @@ public class FileWriterService {
 
         Files.delete(path);
 
-        logger.info("Deleted file: {}", path);
+        logger.info("✓ Deleted file: {}", path);
         return FileOperation.builder()
                 .filePath(path.toString())
                 .operationType(OperationType.DELETE)
@@ -188,5 +194,23 @@ public class FileWriterService {
         CREATE,
         UPDATE,
         DELETE
+    }
+
+    private void logContentPreview(String filePath, String content) {
+        String[] lines = content.split("\n", 6);
+        int previewLines = Math.min(5, lines.length);
+        StringBuilder preview = new StringBuilder();
+        preview.append("Preview (first ").append(previewLines).append(" lines):\n");
+        for (int i = 0; i < previewLines; i++) {
+            String line = lines[i];
+            if (line.length() > 100) {
+                line = line.substring(0, 100) + "...";
+            }
+            preview.append("  ").append(line).append("\n");
+        }
+        if (lines.length > 5) {
+            preview.append("  ... (").append(lines.length - 5).append(" more lines)");
+        }
+        logger.info(preview.toString());
     }
 }

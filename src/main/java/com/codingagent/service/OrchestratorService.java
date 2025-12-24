@@ -81,10 +81,11 @@ public class OrchestratorService {
         Integer fileCount = 0;
 
         if (fileOperationParser.containsFileOperations(result)) {
-            logger.info("Detected file operations in AI response, processing...");
+            logger.info("📄 Detected file operations in AI response, processing...");
             List<FileWriterService.FileOperation> operations = fileOperationParser.parseFileOperations(result, directoryPath);
             
             if (!operations.isEmpty()) {
+                logger.info("📝 Writing {} file(s)...", operations.size());
                 List<FileWriterService.FileOperation> results = fileWriterService.writeFiles(operations);
                 filesWritten = results.stream()
                         .filter(FileWriterService.FileOperation::isSuccess)
@@ -92,7 +93,7 @@ public class OrchestratorService {
                         .collect(Collectors.toList());
                 fileCount = filesWritten.size();
                 
-                logger.info("Successfully wrote {} files", fileCount);
+                logger.info("✅ Successfully wrote {} files", fileCount);
             }
         }
 
@@ -170,10 +171,11 @@ public class OrchestratorService {
         Integer fileCount = 0;
 
         if (fileOperationParser.containsFileOperations(refinedCode)) {
-            logger.info("Detected file operations in refined code, processing...");
+            logger.info("📄 Detected file operations in refined code, processing...");
             List<FileWriterService.FileOperation> operations = fileOperationParser.parseFileOperations(refinedCode, directoryPath);
             
             if (!operations.isEmpty()) {
+                logger.info("📝 Writing {} file(s) after collaboration...", operations.size());
                 List<FileWriterService.FileOperation> results = fileWriterService.writeFiles(operations);
                 filesWritten = results.stream()
                         .filter(FileWriterService.FileOperation::isSuccess)
@@ -181,7 +183,7 @@ public class OrchestratorService {
                         .collect(Collectors.toList());
                 fileCount = filesWritten.size();
                 
-                logger.info("Successfully wrote {} files after collaboration", fileCount);
+                logger.info("✅ Successfully wrote {} files after collaboration", fileCount);
             }
         }
 

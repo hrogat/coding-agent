@@ -55,7 +55,8 @@ public class CodeAgent implements Agent {
 
     @Override
     public String execute(String prompt, String directoryContext) {
-        logger.debug("CodeAgent executing with prompt: {}", prompt);
+        logger.info("🤖 CodeAgent starting execution...");
+        logger.info("Request: {}", truncate(prompt, 100));
         
         StringBuilder fullPromptText = new StringBuilder(SYSTEM_PROMPT);
         
@@ -66,10 +67,49 @@ public class CodeAgent implements Agent {
         fullPromptText.append("\n\nUser request: ").append(prompt);
         fullPromptText.append("\n\nRemember to use the FILE: format for any files you create or modify.");
         
+        logger.info("⏳ Streaming AI response...");
         Prompt fullPrompt = new Prompt(fullPromptText.toString());
-        String result = chatModel.call(fullPrompt).getResult().getOutput().getContent();
         
-        logger.debug("CodeAgent result: {}", result);
-        return result;
+        StringBuilder result = new StringBuilder();
+        StringBuilder lineBuffer = new StringBuilder();
+        
+        chatModel.stream(fullPrompt).doOnNext(chatResponse -> {
+            String content = chatResponse.getResult().getOutput().getContent();
+            result.append(content);
+            lineBuffer.append(content);
+            
+            if (lineBuffer.toString().contains("\n")) {
+                String[] lines = lineBuffer.toString().split("\n", -1);
+                for (int i = 0; i < lines.length - 1; i++) {
+                    String line = lines[i];
+                    if (line.length() > 120) {
+                        line = line.substring(0, 120) + "...";
+                    }
+                    logger.info("  💭 {}", line);
+                }
+                lineBuffer.setLength(0);
+                lineBuffer.append(lines[lines.length - 1]);
+            }
+        }).blockLast();
+        
+        if (lineBuffer.length() > 0) {
+            String line = lineBuffer.toString();
+            if (line.length() > 120) {
+                line = line.substring(0, 120) + "...";
+            }
+            logger.info("  💭 {}", line);
+        }
+        
+        String finalResult = result.toString();
+        logger.info("✓ AI response complete (length: {} chars)", finalResult.length());
+        return finalResult;
     }
+
+    private String truncate(String text, int maxLength) {
+        if (text == null || text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + "...";
+    }
+
 }
