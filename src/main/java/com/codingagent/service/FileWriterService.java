@@ -1,5 +1,10 @@
 package com.codingagent.service;
 
+import com.codingagent.exception.FileOperationException;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -39,18 +44,22 @@ public class FileWriterService {
         return results;
     }
 
-    private FileOperation executeOperation(FileOperation operation) throws IOException {
-        Path path = Paths.get(operation.getFilePath());
+    private FileOperation executeOperation(FileOperation operation) {
+        try {
+            Path path = Paths.get(operation.getFilePath());
 
-        switch (operation.getOperationType()) {
-            case CREATE:
-                return createFile(path, operation.getContent());
-            case UPDATE:
-                return updateFile(path, operation.getContent());
-            case DELETE:
-                return deleteFile(path);
-            default:
-                throw new IllegalArgumentException("Unknown operation type: " + operation.getOperationType());
+            switch (operation.getOperationType()) {
+                case CREATE:
+                    return createFile(path, operation.getContent());
+                case UPDATE:
+                    return updateFile(path, operation.getContent());
+                case DELETE:
+                    return deleteFile(path);
+                default:
+                    throw new IllegalArgumentException("Unknown operation type: " + operation.getOperationType());
+            }
+        } catch (IOException e) {
+            throw new FileOperationException("Failed to execute file operation: " + operation.getFilePath(), e);
         }
     }
 
@@ -115,79 +124,16 @@ public class FileWriterService {
                 .build();
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class FileOperation {
         private String filePath;
         private String content;
         private OperationType operationType;
         private boolean success;
         private String errorMessage;
-
-        public static FileOperationBuilder builder() {
-            return new FileOperationBuilder();
-        }
-
-        public String getFilePath() {
-            return filePath;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public OperationType getOperationType() {
-            return operationType;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public String getErrorMessage() {
-            return errorMessage;
-        }
-
-        public static class FileOperationBuilder {
-            private String filePath;
-            private String content;
-            private OperationType operationType;
-            private boolean success;
-            private String errorMessage;
-
-            public FileOperationBuilder filePath(String filePath) {
-                this.filePath = filePath;
-                return this;
-            }
-
-            public FileOperationBuilder content(String content) {
-                this.content = content;
-                return this;
-            }
-
-            public FileOperationBuilder operationType(OperationType operationType) {
-                this.operationType = operationType;
-                return this;
-            }
-
-            public FileOperationBuilder success(boolean success) {
-                this.success = success;
-                return this;
-            }
-
-            public FileOperationBuilder errorMessage(String errorMessage) {
-                this.errorMessage = errorMessage;
-                return this;
-            }
-
-            public FileOperation build() {
-                FileOperation operation = new FileOperation();
-                operation.filePath = this.filePath;
-                operation.content = this.content;
-                operation.operationType = this.operationType;
-                operation.success = this.success;
-                operation.errorMessage = this.errorMessage;
-                return operation;
-            }
-        }
     }
 
     public enum OperationType {

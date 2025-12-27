@@ -4,15 +4,12 @@ import com.codingagent.model.AgentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CodeAgent implements Agent {
+public class CodeAgent extends BaseAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(CodeAgent.class);
-
-    private final ChatModel chatModel;
 
     private static final String SYSTEM_PROMPT = """
             You are a code generation expert. Your role is to:
@@ -45,7 +42,7 @@ public class CodeAgent implements Agent {
             """;
 
     public CodeAgent(ChatModel chatModel) {
-        this.chatModel = chatModel;
+        super(chatModel);
     }
 
     @Override
@@ -54,62 +51,29 @@ public class CodeAgent implements Agent {
     }
 
     @Override
-    public String execute(String prompt, String directoryContext) {
-        logger.info("🤖 CodeAgent starting execution...");
-        logger.info("Request: {}", truncate(prompt, 100));
-        
-        StringBuilder fullPromptText = new StringBuilder(SYSTEM_PROMPT);
-        
-        if (directoryContext != null && !directoryContext.isEmpty()) {
-            fullPromptText.append("\n\n").append(directoryContext);
-        }
-        
-        fullPromptText.append("\n\nUser request: ").append(prompt);
-        fullPromptText.append("\n\nRemember to use the FILE: format for any files you create or modify.");
-        
-        logger.info("⏳ Streaming AI response...");
-        Prompt fullPrompt = new Prompt(fullPromptText.toString());
-        
-        StringBuilder result = new StringBuilder();
-        StringBuilder lineBuffer = new StringBuilder();
-        
-        chatModel.stream(fullPrompt).doOnNext(chatResponse -> {
-            String content = chatResponse.getResult().getOutput().getContent();
-            result.append(content);
-            lineBuffer.append(content);
-            
-            if (lineBuffer.toString().contains("\n")) {
-                String[] lines = lineBuffer.toString().split("\n", -1);
-                for (int i = 0; i < lines.length - 1; i++) {
-                    String line = lines[i];
-                    if (line.length() > 120) {
-                        line = line.substring(0, 120) + "...";
-                    }
-                    logger.info("  💭 {}", line);
-                }
-                lineBuffer.setLength(0);
-                lineBuffer.append(lines[lines.length - 1]);
-            }
-        }).blockLast();
-        
-        if (lineBuffer.length() > 0) {
-            String line = lineBuffer.toString();
-            if (line.length() > 120) {
-                line = line.substring(0, 120) + "...";
-            }
-            logger.info("  💭 {}", line);
-        }
-        
-        String finalResult = result.toString();
-        logger.info("✓ AI response complete (length: {} chars)", finalResult.length());
-        return finalResult;
+    protected String buildFullPrompt(String prompt, String directoryContext) {
+        String basePrompt = super.buildFullPrompt(prompt, directoryContext);
+        return basePrompt + "\n\nRemember to use the FILE: format for any files you create or modify.";
     }
 
-    private String truncate(String text, int maxLength) {
-        if (text == null || text.length() <= maxLength) {
-            return text;
-        }
-        return text.substring(0, maxLength) + "...";
+    @Override
+    protected Logger getLogger() {
+        return logger;
+    }
+
+    @Override
+    protected String getSystemPrompt() {
+        return SYSTEM_PROMPT;
+    }
+
+    @Override
+    protected String getLogPrefix() {
+        return "🤖 CodeAgent";
+    }
+
+    @Override
+    protected String getLogEmoji() {
+        return "💭";
     }
 
 }

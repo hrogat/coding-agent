@@ -28,19 +28,21 @@ public class AgentController {
         logger.info("Received request with prompt: {}, directory: {}, collaboration: {}", 
                     request.getPrompt(), request.getDirectoryPath(), request.getUseCollaboration());
 
-        if (request.getPrompt() == null || request.getPrompt().trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
+        validateRequest(request);
 
-        try {
-            AgentResponse response = orchestratorService.processRequest(
-                    request.getPrompt(), 
-                    request.getDirectoryPath(),
-                    request.getUseCollaboration());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Error processing request", e);
-            return ResponseEntity.internalServerError().build();
+        AgentResponse response = orchestratorService.processRequest(
+                request.getPrompt(), 
+                request.getDirectoryPath(),
+                request.getUseCollaboration());
+        return ResponseEntity.ok(response);
+    }
+
+    private void validateRequest(AgentRequest request) {
+        if (request.getPrompt() == null || request.getPrompt().trim().isEmpty()) {
+            throw new IllegalArgumentException("Prompt cannot be null or empty");
+        }
+        if (request.getPrompt().length() > 10000) {
+            throw new IllegalArgumentException("Prompt exceeds maximum length of 10000 characters");
         }
     }
 }

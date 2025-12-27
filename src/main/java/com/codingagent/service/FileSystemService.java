@@ -1,5 +1,6 @@
 package com.codingagent.service;
 
+import com.codingagent.config.FileSystemProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,11 @@ import java.util.stream.Stream;
 public class FileSystemService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileSystemService.class);
-    private static final int MAX_FILE_SIZE = 1024 * 1024;
-    private static final int MAX_FILES = 50;
+    private final FileSystemProperties properties;
+
+    public FileSystemService(FileSystemProperties properties) {
+        this.properties = properties;
+    }
 
     public String buildDirectoryContext(String directoryPath) {
         if (directoryPath == null || directoryPath.trim().isEmpty()) {
@@ -40,7 +44,7 @@ public class FileSystemService {
 
         try {
             context.append("Directory Structure:\n");
-            context.append(buildDirectoryTree(path, 0, 3));
+            context.append(buildDirectoryTree(path, 0, properties.getMaxDepth()));
             context.append("\n\n");
 
             context.append("File Contents:\n");
@@ -48,7 +52,7 @@ public class FileSystemService {
             
             int fileCount = 0;
             for (Path file : files) {
-                if (fileCount >= MAX_FILES) {
+                if (fileCount >= properties.getMaxFiles()) {
                     context.append("\n[Additional files omitted - limit reached]\n");
                     break;
                 }
@@ -107,7 +111,7 @@ public class FileSystemService {
                     .filter(Files::isRegularFile)
                     .filter(path -> !shouldSkipPath(path.getFileName().toString()))
                     .filter(path -> isTextFile(path))
-                    .limit(MAX_FILES)
+                    .limit(properties.getMaxFiles())
                     .collect(Collectors.toList());
         }
     }
@@ -115,7 +119,7 @@ public class FileSystemService {
     private String readFileContent(Path file) {
         try {
             long fileSize = Files.size(file);
-            if (fileSize > MAX_FILE_SIZE) {
+            if (fileSize > properties.getMaxFileSize()) {
                 logger.debug("Skipping large file: {} (size: {} bytes)", file, fileSize);
                 return null;
             }
