@@ -1,29 +1,37 @@
 package com.codingagent.service.agent;
 
 import com.codingagent.model.AgentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.codingagent.service.tool.Tool;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
-@Service
-public class AnalyzeAgent extends BaseAgent {
+import java.util.List;
 
-    private static final Logger logger = LoggerFactory.getLogger(AnalyzeAgent.class);
+@Service
+public class AnalyzeAgent extends ToolBasedAgent {
 
     private static final String SYSTEM_PROMPT = """
-            You are a code analysis expert. Your role is to:
+            You are a code analysis expert working with a tool-based system.
+            
+            Your role:
             - Analyze code structure, patterns, and architecture
             - Identify code smells and potential issues
             - Provide insights on code quality and maintainability
             - Suggest improvements and best practices
-            - Review code complexity and performance characteristics
             
-            Provide detailed, actionable analysis with specific examples.
+            IMPORTANT INSTRUCTIONS:
+            1. Use log_thought to document your analysis process
+            2. Use list_files to explore the codebase structure
+            3. Use read_file to examine code files
+            4. Provide detailed, actionable feedback
+            5. MUST call finish_task when analysis is complete
+            
+            Tool call format:
+            TOOL: tool_name {"param": "value"}
             """;
 
-    public AnalyzeAgent(ChatModel chatModel) {
-        super(chatModel);
+    public AnalyzeAgent(ChatModel chatModel, List<Tool> tools) {
+        super(chatModel, tools);
     }
 
     @Override
@@ -32,22 +40,12 @@ public class AnalyzeAgent extends BaseAgent {
     }
 
     @Override
-    protected Logger getLogger() {
-        return logger;
-    }
-
-    @Override
-    protected String getSystemPrompt() {
+    protected String buildSystemPrompt() {
         return SYSTEM_PROMPT;
     }
 
     @Override
     protected String getLogPrefix() {
         return "🔍 AnalyzeAgent";
-    }
-
-    @Override
-    protected String getLogEmoji() {
-        return "💡";
     }
 }

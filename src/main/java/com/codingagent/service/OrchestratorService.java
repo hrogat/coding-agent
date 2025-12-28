@@ -24,20 +24,14 @@ public class OrchestratorService {
     private final CollaborationAgent collaborationAgent;
     private final Map<AgentType, Agent> agents;
     private final FileSystemService fileSystemService;
-    private final FileWriterService fileWriterService;
-    private final FileOperationParser fileOperationParser;
 
     public OrchestratorService(ClassificationAgent classificationAgent,
                                CollaborationAgent collaborationAgent,
                                List<Agent> agentList,
-                               FileSystemService fileSystemService,
-                               FileWriterService fileWriterService,
-                               FileOperationParser fileOperationParser) {
+                               FileSystemService fileSystemService) {
         this.classificationAgent = classificationAgent;
         this.collaborationAgent = collaborationAgent;
         this.fileSystemService = fileSystemService;
-        this.fileWriterService = fileWriterService;
-        this.fileOperationParser = fileOperationParser;
         this.agents = agentList.stream()
                 .collect(Collectors.toMap(Agent::getType, Function.identity()));
         logger.info("OrchestratorService initialized with {} agents", agents.size());
@@ -59,14 +53,15 @@ public class OrchestratorService {
         Agent selectedAgent = getAgent(selectedType);
         String directoryContext = buildDirectoryContext(directoryPath);
         String result = selectedAgent.execute(userPrompt, directoryContext);
-        FileOperationResult fileResult = processFileOperations(result, directoryPath);
+        
+        TaskSummary summary = extractTaskSummary(result);
 
         return AgentResponse.builder()
                 .agentType(selectedType)
                 .result(result)
                 .reasoning("Request classified as " + selectedType + " task")
-                .filesWritten(fileResult.filesWritten)
-                .fileCount(fileResult.fileCount)
+                .filesWritten(summary.filesWritten)
+                .fileCount(summary.fileCount)
                 .build();
     }
 
@@ -76,15 +71,14 @@ public class OrchestratorService {
         CollaborationAgent.CollaborationResult collaborationResult = 
                 collaborationAgent.executeCollaborativeProcess(userPrompt, directoryContext);
         
-        FileOperationResult fileResult = processFileOperations(
-                collaborationResult.getRefinedCode(), directoryPath);
+        TaskSummary summary = extractTaskSummary(collaborationResult.getCombinedResult());
 
         return AgentResponse.builder()
                 .agentType(AgentType.CODE)
                 .result(collaborationResult.getCombinedResult())
                 .reasoning("Collaborative process: Code Generation → Analysis → Refinement")
-                .filesWritten(fileResult.filesWritten)
-                .fileCount(fileResult.fileCount)
+                .filesWritten(summary.filesWritten)
+                .fileCount(summary.fileCount)
                 .build();
     }
 
@@ -105,35 +99,25 @@ public class OrchestratorService {
         return fileSystemService.buildDirectoryContext(directoryPath);
     }
 
-    private FileOperationResult processFileOperations(String result, String directoryPath) {
-        List<String> filesWritten = null;
-        Integer fileCount = 0;
-
-        if (fileOperationParser.containsFileOperations(result)) {
-            logger.info("📄 Detected file operations in AI response, processing...");
-            List<FileWriterService.FileOperation> operations = fileOperationParser.parseFileOperations(result, directoryPath);
-            
-            if (!operations.isEmpty()) {
-                logger.info("📝 Writing {} file(s)...", operations.size());
-                List<FileWriterService.FileOperation> results = fileWriterService.writeFiles(operations);
-                filesWritten = results.stream()
-                        .filter(FileWriterService.FileOperation::isSuccess)
-                        .map(FileWriterService.FileOperation::getFilePath)
-                        .collect(Collectors.toList());
-                fileCount = filesWritten.size();
-                
-                logger.info("✅ Successfully wrote {} files", fileCount);
-            }
-        }
-
-        return new FileOperationResult(filesWritten, fileCount);
+    private TaskSummary extractTaskSummary(String result) {
+        List<String> filesWritten = result.lines()
+                .filter(line -> line.contains("Success: File written to"))
+                .map(line -> {
+                    int idx = line.indexOf("Success: File written to");
+                    return line.substring(idx + 25).trim();
+                })
+                .collect(Collectors.toList());
+        
+        Integer fileCount = filesWritten.isEmpty() ? 0 : filesWritten.size();
+        
+        return new TaskSummary(filesWritten.isEmpty() ? null : filesWritten, fileCount);
     }
 
-    private static class FileOperationResult {
+    private static class TaskSummary {
         final List<String> filesWritten;
         final Integer fileCount;
 
-        FileOperationResult(List<String> filesWritten, Integer fileCount) {
+        TaskSummary(List<String> filesWritten, Integer fileCount) {
             this.filesWritten = filesWritten;
             this.fileCount = fileCount;
         }
