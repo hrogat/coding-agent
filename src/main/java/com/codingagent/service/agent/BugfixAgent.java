@@ -3,6 +3,7 @@ package com.codingagent.service.agent;
 import com.codingagent.model.AgentType;
 import com.codingagent.service.tool.Tool;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class BugfixAgent extends ToolBasedAgent {
             TOOL: tool_name {"param": "value"}
             """;
 
-    public BugfixAgent(ChatModel chatModel, List<Tool> tools) {
+    public BugfixAgent(ChatModel chatModel, @Qualifier("bugfixTools") List<Tool> tools) {
         super(chatModel, tools);
     }
 
