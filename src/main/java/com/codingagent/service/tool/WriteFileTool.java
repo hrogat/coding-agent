@@ -1,5 +1,7 @@
 package com.codingagent.service.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 public class WriteFileTool implements Tool {
 
     private static final Logger logger = LoggerFactory.getLogger(WriteFileTool.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String getName() {
@@ -50,30 +53,17 @@ public class WriteFileTool implements Tool {
     }
 
     private WriteFileParams extractParams(String parameters) {
-        String cleaned = parameters.trim();
-        String path = "";
-        String content = "";
-
-        if (cleaned.startsWith("{")) {
-            int pathStart = cleaned.indexOf("\"path\"");
-            if (pathStart != -1) {
-                int colonIdx = cleaned.indexOf(":", pathStart);
-                int valueStart = cleaned.indexOf("\"", colonIdx) + 1;
-                int valueEnd = cleaned.indexOf("\"", valueStart);
-                path = cleaned.substring(valueStart, valueEnd);
-            }
-
-            int contentStart = cleaned.indexOf("\"content\"");
-            if (contentStart != -1) {
-                int colonIdx = cleaned.indexOf(":", contentStart);
-                int valueStart = cleaned.indexOf("\"", colonIdx) + 1;
-                int valueEnd = cleaned.lastIndexOf("\"");
-                content = cleaned.substring(valueStart, valueEnd);
-                content = content.replace("\\n", "\n").replace("\\t", "\t");
-            }
+        try {
+            logger.debug("Parsing parameters: {}", parameters);
+            JsonNode jsonNode = objectMapper.readTree(parameters.trim());
+            String path = jsonNode.has("path") ? jsonNode.get("path").asText() : "";
+            String content = jsonNode.has("content") ? jsonNode.get("content").asText() : "";
+            logger.debug("Extracted path: '{}', content length: {}", path, content.length());
+            return new WriteFileParams(path, content);
+        } catch (Exception e) {
+            logger.error("Failed to parse parameters: {}", parameters, e);
+            return new WriteFileParams("", "");
         }
-
-        return new WriteFileParams(path, content);
     }
 
     private static class WriteFileParams {

@@ -16,7 +16,7 @@ public abstract class ToolBasedAgent implements Agent {
     private static final Logger logger = LoggerFactory.getLogger(ToolBasedAgent.class);
     private static final int MAX_ITERATIONS = 20;
     private static final Pattern TOOL_CALL_PATTERN = Pattern.compile(
-            "TOOL:\\s*(\\w+)\\s*\\{([^}]*)\\}",
+            "TOOL:\\s*(\\w+)\\s*(\\{.*?\\}(?=\\s*(?:TOOL:|Assistant:|$)))",
             Pattern.DOTALL
     );
 
@@ -114,6 +114,7 @@ public abstract class ToolBasedAgent implements Agent {
         }
 
         try {
+            logger.debug("Executing tool {} with parameters: {}", toolCall.toolName, toolCall.parameters);
             return tool.execute(toolCall.parameters);
         } catch (Exception e) {
             logger.error("Error executing tool {}", toolCall.toolName, e);

@@ -1,5 +1,7 @@
 package com.codingagent.service.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class LogThoughtTool implements Tool {
 
     private static final Logger logger = LoggerFactory.getLogger(LogThoughtTool.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String getName() {
@@ -31,14 +34,12 @@ public class LogThoughtTool implements Tool {
     }
 
     private String extractThought(String parameters) {
-        String cleaned = parameters.trim();
-        if (cleaned.startsWith("{") && cleaned.contains("\"thought\"")) {
-            int start = cleaned.indexOf("\"thought\"");
-            int colonIdx = cleaned.indexOf(":", start);
-            int valueStart = cleaned.indexOf("\"", colonIdx) + 1;
-            int valueEnd = cleaned.lastIndexOf("\"");
-            return cleaned.substring(valueStart, valueEnd);
+        try {
+            JsonNode jsonNode = objectMapper.readTree(parameters.trim());
+            return jsonNode.has("thought") ? jsonNode.get("thought").asText() : parameters.trim();
+        } catch (Exception e) {
+            logger.debug("Failed to parse as JSON, using raw parameter: {}", parameters);
+            return parameters.trim();
         }
-        return cleaned;
     }
 }

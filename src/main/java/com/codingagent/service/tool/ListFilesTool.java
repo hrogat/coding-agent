@@ -1,5 +1,7 @@
 package com.codingagent.service.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -15,6 +17,7 @@ import java.util.stream.Stream;
 public class ListFilesTool implements Tool {
 
     private static final Logger logger = LoggerFactory.getLogger(ListFilesTool.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String getName() {
@@ -63,14 +66,12 @@ public class ListFilesTool implements Tool {
     }
 
     private String extractPath(String parameters) {
-        String cleaned = parameters.trim();
-        if (cleaned.startsWith("{") && cleaned.contains("\"path\"")) {
-            int start = cleaned.indexOf("\"path\"");
-            int colonIdx = cleaned.indexOf(":", start);
-            int valueStart = cleaned.indexOf("\"", colonIdx) + 1;
-            int valueEnd = cleaned.indexOf("\"", valueStart);
-            return cleaned.substring(valueStart, valueEnd);
+        try {
+            JsonNode jsonNode = objectMapper.readTree(parameters.trim());
+            return jsonNode.has("path") ? jsonNode.get("path").asText() : parameters.trim();
+        } catch (Exception e) {
+            logger.debug("Failed to parse as JSON, using raw parameter: {}", parameters);
+            return parameters.trim();
         }
-        return cleaned;
     }
 }
