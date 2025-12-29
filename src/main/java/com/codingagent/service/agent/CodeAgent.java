@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class CodeAgent extends ToolBasedAgent {
+public class CodeAgent extends StreamingToolBasedAgent {
 
     private static final String SYSTEM_PROMPT = """
             You are a code generation expert working with a tool-based system.

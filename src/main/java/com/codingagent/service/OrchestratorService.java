@@ -3,12 +3,15 @@ package com.codingagent.service;
 import com.codingagent.exception.AgentException;
 import com.codingagent.model.AgentResponse;
 import com.codingagent.model.AgentType;
+import com.codingagent.model.StreamEvent;
 import com.codingagent.service.agent.Agent;
 import com.codingagent.service.agent.ClassificationAgent;
 import com.codingagent.service.agent.CollaborationAgent;
+import com.codingagent.service.agent.StreamingToolBasedAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,20 @@ public class OrchestratorService {
                 .filesWritten(summary.filesWritten)
                 .fileCount(summary.fileCount)
                 .build();
+    }
+
+    public Flux<StreamEvent> processRequestStream(String userPrompt, String directoryPath, Boolean useCollaboration) {
+        logger.info("Processing streaming request: {} (collaboration: {})", userPrompt, useCollaboration);
+
+        AgentType selectedType = classificationAgent.classify(userPrompt);
+        Agent selectedAgent = getAgent(selectedType);
+        
+        if (selectedAgent instanceof StreamingToolBasedAgent) {
+            String directoryContext = buildDirectoryContext(directoryPath);
+            return ((StreamingToolBasedAgent) selectedAgent).executeStream(userPrompt, directoryContext);
+        } else {
+            return Flux.error(new AgentException("Agent does not support streaming: " + selectedType));
+        }
     }
 
     private AgentResponse processWithCollaboration(String userPrompt, String directoryPath) {

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class AnalyzeAgent extends ToolBasedAgent {
+public class AnalyzeAgent extends StreamingToolBasedAgent {
 
     private static final String SYSTEM_PROMPT = """
             You are a code analysis expert working with a tool-based system.

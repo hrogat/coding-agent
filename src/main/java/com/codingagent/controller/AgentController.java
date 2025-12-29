@@ -2,14 +2,17 @@ package com.codingagent.controller;
 
 import com.codingagent.model.AgentRequest;
 import com.codingagent.model.AgentResponse;
+import com.codingagent.model.StreamEvent;
 import com.codingagent.service.OrchestratorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/agent")
@@ -35,6 +38,19 @@ public class AgentController {
                 request.getDirectoryPath(),
                 request.getUseCollaboration());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<StreamEvent> streamRequest(@RequestBody AgentRequest request) {
+        logger.info("Received streaming request with prompt: {}, directory: {}, collaboration: {}",
+                    request.getPrompt(), request.getDirectoryPath(), request.getUseCollaboration());
+
+        validateRequest(request);
+
+        return orchestratorService.processRequestStream(
+                request.getPrompt(),
+                request.getDirectoryPath(),
+                request.getUseCollaboration());
     }
 
     private void validateRequest(AgentRequest request) {

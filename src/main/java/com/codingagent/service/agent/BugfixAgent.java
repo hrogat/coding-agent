@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class BugfixAgent extends ToolBasedAgent {
+public class BugfixAgent extends StreamingToolBasedAgent {
 
     private static final String SYSTEM_PROMPT = """
             You are a debugging and bug-fixing expert working with a tool-based system.
