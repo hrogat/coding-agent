@@ -76,7 +76,7 @@ public class OrchestratorService {
         
         if (selectedAgent instanceof StreamingToolBasedAgent) {
             String directoryContext = buildDirectoryContext(directoryPath);
-            return ((StreamingToolBasedAgent) selectedAgent).executeStream(userPrompt, directoryContext);
+            return ((StreamingToolBasedAgent) selectedAgent).executeStream(userPrompt, directoryContext, directoryPath);
         } else {
             return Flux.error(new AgentException("Agent does not support streaming: " + selectedType));
         }

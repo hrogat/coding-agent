@@ -37,30 +37,45 @@ public class ListFilesTool implements Tool {
     public String execute(String parameters) {
         try {
             String path = extractPath(parameters);
-            Path directory = Paths.get(path);
+            
+            // Resolve path relative to base directory if available
+            String baseDir = ToolExecutionContext.getBaseDirectory();
+            Path directory;
+            if (baseDir != null && !baseDir.trim().isEmpty()) {
+                directory = Paths.get(baseDir, path.isEmpty() ? "." : path);
+                logger.debug("Resolving path '{}' relative to base directory '{}' -> '{}'", 
+                        path, baseDir, directory.toAbsolutePath());
+            } else {
+                directory = Paths.get(path.isEmpty() ? "." : path);
+                logger.debug("Using path '{}' without base directory", path);
+            }
 
             if (!Files.exists(directory)) {
-                return "Error: Directory does not exist: " + path;
+                logger.warn("Directory not found: {}", directory.toAbsolutePath());
+                return "Error: Directory not found: " + directory.toAbsolutePath();
             }
 
             if (!Files.isDirectory(directory)) {
-                return "Error: Path is not a directory: " + path;
+                logger.warn("Path is not a directory: {}", directory.toAbsolutePath());
+                return "Error: Not a directory: " + directory.toAbsolutePath();
             }
 
-            try (Stream<Path> paths = Files.list(directory)) {
-                String listing = paths
-                        .map(p -> {
-                            String type = Files.isDirectory(p) ? "[DIR]" : "[FILE]";
-                            return type + " " + p.getFileName().toString();
-                        })
-                        .collect(Collectors.joining("\n"));
+            StringBuilder result = new StringBuilder();
+            result.append("Files in ").append(directory.toAbsolutePath()).append(":\n");
 
-                logger.info("Listed files in: {}", path);
-                return listing.isEmpty() ? "Directory is empty" : listing;
-            }
+            Files.list(directory)
+                    .sorted()
+                    .forEach(file -> {
+                        String type = Files.isDirectory(file) ? "[DIR]" : "[FILE]";
+                        result.append(type).append(" ").append(file.getFileName()).append("\n");
+                    });
+
+            String output = result.toString();
+            logger.debug("Listed directory: {} ({} items)", directory.toAbsolutePath(), Files.list(directory).count());
+            return output;
 
         } catch (IOException e) {
-            logger.error("Error listing files", e);
+            logger.error("Error listing directory", e);
             return "Error: " + e.getMessage();
         }
     }

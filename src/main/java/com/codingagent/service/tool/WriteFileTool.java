@@ -36,15 +36,29 @@ public class WriteFileTool implements Tool {
     public String execute(String parameters) {
         try {
             WriteFileParams params = extractParams(parameters);
-            Path file = Paths.get(params.path);
+            
+            // Resolve path relative to base directory if available
+            String baseDir = ToolExecutionContext.getBaseDirectory();
+            Path file;
+            if (baseDir != null && !baseDir.trim().isEmpty()) {
+                file = Paths.get(baseDir, params.path);
+                logger.debug("Resolving path '{}' relative to base directory '{}' -> '{}'", 
+                        params.path, baseDir, file.toAbsolutePath());
+            } else {
+                file = Paths.get(params.path);
+                logger.debug("Using path '{}' without base directory", params.path);
+            }
 
-            Files.createDirectories(file.getParent());
+            if (file.getParent() != null) {
+                Files.createDirectories(file.getParent());
+            }
+            
             Files.writeString(file, params.content, 
                     StandardOpenOption.CREATE, 
                     StandardOpenOption.TRUNCATE_EXISTING);
 
-            logger.info("Wrote file: {} ({} bytes)", params.path, params.content.length());
-            return "Success: File written to " + params.path;
+            logger.info("Wrote file: {} ({} bytes)", file.toAbsolutePath(), params.content.length());
+            return "Success: File written to " + file.toAbsolutePath();
 
         } catch (IOException e) {
             logger.error("Error writing file", e);

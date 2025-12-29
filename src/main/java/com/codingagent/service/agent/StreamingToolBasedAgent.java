@@ -2,6 +2,7 @@ package com.codingagent.service.agent;
 
 import com.codingagent.model.StreamEvent;
 import com.codingagent.service.tool.Tool;
+import com.codingagent.service.tool.ToolExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
@@ -36,7 +37,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
     @Override
     public String execute(String prompt, String directoryContext) {
         StringBuilder result = new StringBuilder();
-        executeStream(prompt, directoryContext).toStream().forEach(event -> {
+        executeStream(prompt, directoryContext, null).toStream().forEach(event -> {
             if (event.getMessage() != null) {
                 result.append(event.getMessage()).append("\n");
             }
@@ -44,9 +45,13 @@ public abstract class StreamingToolBasedAgent implements Agent {
         return result.toString();
     }
 
-    public Flux<StreamEvent> executeStream(String prompt, String directoryContext) {
+    public Flux<StreamEvent> executeStream(String prompt, String directoryContext, String baseDirectory) {
         return Flux.create(sink -> {
             try {
+                // Set base directory in thread-local context for tools to use
+                if (baseDirectory != null && !baseDirectory.trim().isEmpty()) {
+                    ToolExecutionContext.setBaseDirectory(baseDirectory);
+                }
                 executeWithSinkAsync(prompt, directoryContext, sink);
             } catch (Exception e) {
                 logger.error("Error during streaming execution", e);
@@ -56,6 +61,9 @@ public abstract class StreamingToolBasedAgent implements Agent {
                         .message("Fatal error: " + e.getMessage())
                         .build());
                 sink.complete();
+            } finally {
+                // Clean up thread-local context
+                ToolExecutionContext.clear();
             }
         });
     }
@@ -197,11 +205,59 @@ public abstract class StreamingToolBasedAgent implements Agent {
     private List<ToolCall> extractToolCalls(String response) {
         Matcher matcher = TOOL_CALL_PATTERN.matcher(response);
         return matcher.results()
-                .map(matchResult -> new ToolCall(
-                        matchResult.group(1).trim(),
-                        matchResult.group(2).trim()
-                ))
+                .map(matchResult -> {
+                    String toolName = matchResult.group(1).trim();
+                    String params = matchResult.group(2).trim();
+                    
+                    // Validate that JSON is complete before returning
+                    if (isCompleteJson(params)) {
+                        return new ToolCall(toolName, params);
+                    }
+                    return null;
+                })
+                .filter(toolCall -> toolCall != null)
                 .collect(Collectors.toList());
+    }
+    
+    private boolean isCompleteJson(String json) {
+        if (json == null || json.isEmpty()) {
+            return false;
+        }
+        
+        // Simple validation: count braces and check for complete structure
+        int braceCount = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            
+            if (c == '\\') {
+                escaped = true;
+                continue;
+            }
+            
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+            
+            if (!inString) {
+                if (c == '{') {
+                    braceCount++;
+                } else if (c == '}') {
+                    braceCount--;
+                }
+            }
+        }
+        
+        // JSON is complete if all braces are balanced and we're not in a string
+        return braceCount == 0 && !inString;
     }
 
     private String executeTool(ToolCall toolCall) {

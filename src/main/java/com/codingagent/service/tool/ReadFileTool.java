@@ -36,23 +36,35 @@ public class ReadFileTool implements Tool {
     public String execute(String parameters) {
         try {
             String path = extractPath(parameters);
-            Path file = Paths.get(path);
+            
+            // Resolve path relative to base directory if available
+            String baseDir = ToolExecutionContext.getBaseDirectory();
+            Path file;
+            if (baseDir != null && !baseDir.trim().isEmpty()) {
+                file = Paths.get(baseDir, path);
+                logger.debug("Resolving path '{}' relative to base directory '{}' -> '{}'", 
+                        path, baseDir, file.toAbsolutePath());
+            } else {
+                file = Paths.get(path);
+                logger.debug("Using path '{}' without base directory", path);
+            }
 
             if (!Files.exists(file)) {
-                return "Error: File does not exist: " + path;
+                logger.warn("File not found: {}", file.toAbsolutePath());
+                return "Error: File not found: " + file.toAbsolutePath();
             }
 
             if (!Files.isRegularFile(file)) {
-                return "Error: Path is not a file: " + path;
+                return "Error: Path is not a file: " + file.toAbsolutePath();
             }
 
             long fileSize = Files.size(file);
             if (fileSize > MAX_FILE_SIZE) {
-                return "Error: File too large (max 1MB): " + path;
+                return "Error: File too large (max 1MB): " + file.toAbsolutePath();
             }
 
             String content = Files.readString(file);
-            logger.info("Read file: {} ({} bytes)", path, fileSize);
+            logger.info("Read file: {} ({} bytes)", file.toAbsolutePath(), fileSize);
             return content;
 
         } catch (IOException e) {
