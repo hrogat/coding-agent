@@ -1,39 +1,67 @@
 package com.codingagent.service.agent;
 
+import com.codingagent.model.StreamEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class CollaborationAgent {
 
     private static final Logger logger = LoggerFactory.getLogger(CollaborationAgent.class);
     
-    private final Agent codeAgent;
-    private final Agent analyzeAgent;
+    private final CodeAgent codeAgent;
+    private final AnalyzeAgent analyzeAgent;
 
     public CollaborationAgent(CodeAgent codeAgent, AnalyzeAgent analyzeAgent) {
         this.codeAgent = codeAgent;
         this.analyzeAgent = analyzeAgent;
     }
 
-    public CollaborationResult executeCollaborativeProcess(String userPrompt, String directoryContext) {
-        logger.info("Starting collaborative code generation process");
+    public Flux<StreamEvent> executeCollaborativeStream(String userPrompt, String directoryContext, String baseDirectory) {
+        logger.info("Starting collaborative code generation process (streaming)");
 
-        logger.info("Step 1/3: Generating initial code");
-        String initialCode = codeAgent.execute(userPrompt, directoryContext);
+        AtomicReference<String> initialCodeRef = new AtomicReference<>("");
+        AtomicReference<String> analysisRef = new AtomicReference<>("");
 
-        logger.info("Step 2/3: Analyzing generated code");
-        String analysisPrompt = buildAnalysisPrompt(initialCode);
-        String analysis = analyzeAgent.execute(analysisPrompt, null);
+        return Flux.concat(
+            emitPhaseEvent("Step 1/3: Generating initial code"),
+            codeAgent.executeStream(userPrompt, directoryContext, baseDirectory)
+                .doOnNext(event -> {
+                    if (event.getMessage() != null) {
+                        initialCodeRef.updateAndGet(current -> current + event.getMessage() + "\n");
+                    }
+                }),
+            
+            emitPhaseEvent("Step 2/3: Analyzing generated code"),
+            Flux.defer(() -> {
+                String analysisPrompt = buildAnalysisPrompt(initialCodeRef.get());
+                return analyzeAgent.executeStream(analysisPrompt, null, baseDirectory)
+                    .doOnNext(event -> {
+                        if (event.getMessage() != null) {
+                            analysisRef.updateAndGet(current -> current + event.getMessage() + "\n");
+                        }
+                    });
+            }),
+            
+            emitPhaseEvent("Step 3/3: Refining code based on analysis"),
+            Flux.defer(() -> {
+                String refinementPrompt = buildRefinementPrompt(analysisRef.get(), initialCodeRef.get());
+                return codeAgent.executeStream(refinementPrompt, directoryContext, baseDirectory);
+            }),
+            
+            emitPhaseEvent("Collaboration complete")
+        );
+    }
 
-        logger.info("Step 3/3: Refining code based on analysis");
-        String refinementPrompt = buildRefinementPrompt(analysis, initialCode);
-        String refinedCode = codeAgent.execute(refinementPrompt, directoryContext);
-
-        String combinedResult = refinedCode + "\n\n--- Analysis Report ---\n" + analysis;
-
-        return new CollaborationResult(refinedCode, analysis, combinedResult);
+    private Flux<StreamEvent> emitPhaseEvent(String message) {
+        return Flux.just(StreamEvent.builder()
+            .type(StreamEvent.EventType.LOG)
+            .message("🤝 CollaborationAgent: " + message)
+            .build());
     }
 
     private String buildAnalysisPrompt(String code) {
@@ -67,27 +95,4 @@ public class CollaborationAgent {
             """, analysis, originalCode);
     }
 
-    public static class CollaborationResult {
-        private final String refinedCode;
-        private final String analysis;
-        private final String combinedResult;
-
-        public CollaborationResult(String refinedCode, String analysis, String combinedResult) {
-            this.refinedCode = refinedCode;
-            this.analysis = analysis;
-            this.combinedResult = combinedResult;
-        }
-
-        public String getRefinedCode() {
-            return refinedCode;
-        }
-
-        public String getAnalysis() {
-            return analysis;
-        }
-
-        public String getCombinedResult() {
-            return combinedResult;
-        }
-    }
 }

@@ -1,7 +1,6 @@
 package com.codingagent.service;
 
 import com.codingagent.exception.AgentException;
-import com.codingagent.model.AgentResponse;
 import com.codingagent.model.AgentType;
 import com.codingagent.model.StreamEvent;
 import com.codingagent.service.agent.Agent;
@@ -40,63 +39,23 @@ public class OrchestratorService {
         logger.info("OrchestratorService initialized with {} agents", agents.size());
     }
 
-    public AgentResponse processRequest(String userPrompt, String directoryPath) {
-        return processRequest(userPrompt, directoryPath, false);
-    }
-
-    public AgentResponse processRequest(String userPrompt, String directoryPath, Boolean useCollaboration) {
-        logger.info("Processing request: {} (collaboration: {})", userPrompt, useCollaboration);
-
-        AgentType selectedType = classificationAgent.classify(userPrompt);
-
-        if (Boolean.TRUE.equals(useCollaboration) && selectedType == AgentType.CODE) {
-            return processWithCollaboration(userPrompt, directoryPath);
-        }
-
-        Agent selectedAgent = getAgent(selectedType);
-        String directoryContext = buildDirectoryContext(directoryPath);
-        String result = selectedAgent.execute(userPrompt, directoryContext);
-        
-        TaskSummary summary = extractTaskSummary(result);
-
-        return AgentResponse.builder()
-                .agentType(selectedType)
-                .result(result)
-                .reasoning("Request classified as " + selectedType + " task")
-                .filesWritten(summary.filesWritten)
-                .fileCount(summary.fileCount)
-                .build();
-    }
-
     public Flux<StreamEvent> processRequestStream(String userPrompt, String directoryPath, Boolean useCollaboration) {
         logger.info("Processing streaming request: {} (collaboration: {})", userPrompt, useCollaboration);
 
         AgentType selectedType = classificationAgent.classify(userPrompt);
+        
+        if (Boolean.TRUE.equals(useCollaboration) && selectedType == AgentType.CODE) {
+            String directoryContext = buildDirectoryContext(directoryPath);
+            return collaborationAgent.executeCollaborativeStream(userPrompt, directoryContext, directoryPath);
+        }
+        
         Agent selectedAgent = getAgent(selectedType);
         
-        if (selectedAgent instanceof StreamingToolBasedAgent) {
+        if (selectedAgent instanceof StreamingToolBasedAgent streamCapableAgent) {
             String directoryContext = buildDirectoryContext(directoryPath);
-            return ((StreamingToolBasedAgent) selectedAgent).executeStream(userPrompt, directoryContext, directoryPath);
-        } else {
-            return Flux.error(new AgentException("Agent does not support streaming: " + selectedType));
+            return streamCapableAgent.executeStream(userPrompt, directoryContext, directoryPath);
         }
-    }
-
-    private AgentResponse processWithCollaboration(String userPrompt, String directoryPath) {
-        String directoryContext = buildDirectoryContext(directoryPath);
-        
-        CollaborationAgent.CollaborationResult collaborationResult = 
-                collaborationAgent.executeCollaborativeProcess(userPrompt, directoryContext);
-        
-        TaskSummary summary = extractTaskSummary(collaborationResult.getCombinedResult());
-
-        return AgentResponse.builder()
-                .agentType(AgentType.CODE)
-                .result(collaborationResult.getCombinedResult())
-                .reasoning("Collaborative process: Code Generation → Analysis → Refinement")
-                .filesWritten(summary.filesWritten)
-                .fileCount(summary.fileCount)
-                .build();
+        return Flux.error(new AgentException("Agent does not support streaming: " + selectedType));
     }
 
     private Agent getAgent(AgentType agentType) {
@@ -114,29 +73,5 @@ public class OrchestratorService {
         }
         logger.info("Building directory context for: {}", directoryPath);
         return fileSystemService.buildDirectoryContext(directoryPath);
-    }
-
-    private TaskSummary extractTaskSummary(String result) {
-        List<String> filesWritten = result.lines()
-                .filter(line -> line.contains("Success: File written to"))
-                .map(line -> {
-                    int idx = line.indexOf("Success: File written to");
-                    return line.substring(idx + 25).trim();
-                })
-                .collect(Collectors.toList());
-        
-        Integer fileCount = filesWritten.isEmpty() ? 0 : filesWritten.size();
-        
-        return new TaskSummary(filesWritten.isEmpty() ? null : filesWritten, fileCount);
-    }
-
-    private static class TaskSummary {
-        final List<String> filesWritten;
-        final Integer fileCount;
-
-        TaskSummary(List<String> filesWritten, Integer fileCount) {
-            this.filesWritten = filesWritten;
-            this.fileCount = fileCount;
-        }
     }
 }
