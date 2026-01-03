@@ -3,7 +3,7 @@ spring:
     name: coding-agent
   ai:
     mistralai:
-      api-key: ${MISTRAL_API_KEY}
+      api-key: ${MISTRAL_API_KEY:jAryWPg9RzGJ9talj5FpY2mzhZaZv5Fy}
       chat:
         options:
           model: mistral-large-latest
@@ -14,5 +14,5 @@ server:
 
 logging:
   level:
-    com.codingagent: DEBUG
-    org.springframework.ai: DEBUG
+    com.codingagent: INFO
+    org.springframework.ai: INFO

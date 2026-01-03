@@ -38,7 +38,7 @@ public class CollaborationAgent {
             
             emitPhaseEvent("Step 2/3: Analyzing generated code"),
             Flux.defer(() -> {
-                String analysisPrompt = buildAnalysisPrompt(initialCodeRef.get());
+                String analysisPrompt = buildAnalysisPrompt(userPrompt, initialCodeRef.get());
                 return analyzeAgent.executeStream(analysisPrompt, null, baseDirectory)
                     .doOnNext(event -> {
                         if (event.getMessage() != null) {
@@ -49,7 +49,7 @@ public class CollaborationAgent {
             
             emitPhaseEvent("Step 3/3: Refining code based on analysis"),
             Flux.defer(() -> {
-                String refinementPrompt = buildRefinementPrompt(analysisRef.get(), initialCodeRef.get());
+                String refinementPrompt = buildRefinementPrompt(userPrompt, analysisRef.get(), initialCodeRef.get());
                 return codeAgent.executeStream(refinementPrompt, directoryContext, baseDirectory);
             }),
             
@@ -64,26 +64,35 @@ public class CollaborationAgent {
             .build());
     }
 
-    private String buildAnalysisPrompt(String code) {
+    private String buildAnalysisPrompt(String originalUserRequest, String code) {
         return String.format("""
+            Original user request: %s
+            
             Analyze the following code for:
             - Code quality and best practices
             - Security vulnerabilities
             - Performance issues
             - Potential bugs
             - Design patterns and architecture
+            - Compliance with the original user request and any constraints mentioned
             
+            IMPORTANT: Ensure the analysis respects any constraints or preferences mentioned in the original request.
             Provide specific, actionable feedback for improvements.
             
             Code to analyze:
             %s
-            """, code);
+            """, originalUserRequest, code);
     }
 
-    private String buildRefinementPrompt(String analysis, String originalCode) {
+    private String buildRefinementPrompt(String originalUserRequest, String analysis, String originalCode) {
         return String.format("""
+            Original user request: %s
+            
             Improve the following code based on this analysis feedback.
-            Apply all suggested improvements and maintain the FILE: format for file operations.
+            Apply all suggested improvements and maintain the tool-based format for file operations.
+            
+            IMPORTANT: Respect all constraints and preferences from the original user request.
+            Do NOT add features or implementations that contradict the user's requirements.
             
             Analysis feedback:
             %s
@@ -91,8 +100,8 @@ public class CollaborationAgent {
             Original code:
             %s
             
-            Provide the improved code with all files in the FILE: format.
-            """, analysis, originalCode);
+            Provide the improved code using the appropriate tools (write_file, etc.).
+            """, originalUserRequest, analysis, originalCode);
     }
 
 }
