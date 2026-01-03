@@ -11,6 +11,7 @@ server:
 coding-agent:
   backend-url: http://localhost:8080
   timeout-minutes: 35
+  default-directory: ${user.dir}
 
 logging:
   level:

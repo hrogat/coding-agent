@@ -1,77 +1,60 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coding Agent - AI Assistant</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Coding Agent Web Interface</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/streaming.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🤖 Coding Agent</h1>
-            <p class="subtitle">AI-Powered Coding Assistant with Mistral AI</p>
-        </header>
+        <h1>🤖 Coding Agent</h1>
+        <p class="subtitle">AI-powered code generation, analysis, and bug fixing with real-time streaming</p>
 
-        <main>
-            <div class="input-section">
-                <div class="form-group">
-                    <label for="prompt">Your Coding Task:</label>
-                    <textarea 
-                        id="prompt" 
-                        placeholder="Describe your coding task... (e.g., 'Create a Java function to sort a list', 'Analyze my code for performance issues', 'Fix the bug in my authentication logic')"
-                        rows="6"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="directoryPath">Directory Path (Optional):</label>
-                    <input 
-                        type="text" 
-                        id="directoryPath" 
-                        placeholder="/path/to/your/project (provides context to the agent)">
-                    <small class="help-text">Provide a directory path to give the agent context about your project files</small>
-                </div>
-
-                <div class="form-group checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="useCollaboration">
-                        <span>Enable Collaboration Mode</span>
-                    </label>
-                    <small class="help-text">For code generation: AI generates code → analyzes it → refines based on feedback (slower but higher quality)</small>
-                </div>
-
-                <button id="submitBtn" class="submit-btn">
-                    <span class="btn-text">Submit Request</span>
-                    <span class="spinner" style="display: none;">⏳</span>
-                </button>
+        <form id="agentForm">
+            <div class="form-group">
+                <label for="prompt">Task Description:</label>
+                <textarea 
+                    id="prompt" 
+                    name="prompt" 
+                    rows="6" 
+                    required
+                    placeholder="Describe what you want the AI to do... (e.g., 'Create a REST API for user management' or 'Fix the null pointer exception in UserService')"></textarea>
             </div>
 
-            <div id="resultSection" class="result-section" style="display: none;">
-                <div class="result-header">
-                    <h2>Response</h2>
-                    <div class="agent-info">
-                        <span class="agent-badge" id="agentType"></span>
-                        <span class="reasoning" id="reasoning"></span>
-                    </div>
-                </div>
-                <div id="filesWrittenSection" class="files-written-section" style="display: none;">
-                    <h3>✅ Files Written</h3>
-                    <ul id="filesWrittenList"></ul>
-                </div>
-                <div class="result-content" id="resultContent"></div>
+            <div class="form-group">
+                <label for="directoryPath">Project Directory (optional):</label>
+                <input 
+                    type="text" 
+                    id="directoryPath" 
+                    name="directoryPath"
+                    placeholder="/path/to/your/project">
             </div>
 
-            <div id="errorSection" class="error-section" style="display: none;">
-                <h3>❌ Error</h3>
-                <p id="errorMessage"></p>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="useCollaboration" name="useCollaboration">
+                    Use Collaboration Mode (Code → Analysis → Refinement)
+                </label>
             </div>
-        </main>
 
-        <footer>
-            <p>Powered by <strong>Mistral AI</strong> | Built with <strong>Spring Boot</strong></p>
-        </footer>
+            <button type="submit" class="submit-btn">
+                🚀 Start Streaming Task
+            </button>
+        </form>
+
+        <div id="loadingSpinner" class="spinner" style="display: none;">
+            <div class="spinner-border"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div id="resultSection" class="result-section" style="display: none;">
+            <h2>Response</h2>
+            <div id="resultContent" class="result-content"></div>
+        </div>
     </div>
 
-    <script th:src="@{/js/app.js}"></script>
+    <script src="/js/app-streaming.js"></script>
 </body>
 </html>

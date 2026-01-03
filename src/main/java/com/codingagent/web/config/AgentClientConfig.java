@@ -3,7 +3,6 @@ package com.codingagent.web.config;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -17,14 +16,15 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class AgentClientConfig {
 
-    @Value("${coding-agent.backend-url}")
-    private String backendUrl;
+    private final CodingAgentWebProperties properties;
 
-    @Value("${coding-agent.timeout-minutes:35}")
-    private Integer timeoutMinutes;
+    public AgentClientConfig(CodingAgentWebProperties properties) {
+        this.properties = properties;
+    }
 
     @Bean
     public WebClient agentWebClient() {
+        int timeoutMinutes = properties.timeoutMinutes();
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
                 .responseTimeout(Duration.ofMinutes(timeoutMinutes))
@@ -37,7 +37,7 @@ public class AgentClientConfig {
                 .build();
 
         return WebClient.builder()
-                .baseUrl(backendUrl)
+                .baseUrl(properties.backendUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .exchangeStrategies(strategies)
                 .build();
