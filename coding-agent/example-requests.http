@@ -1,0 +1,53 @@
+### Code Generation Request (Simple)
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Create a Java function to calculate factorial recursively"
+}
+
+###
+
+### Code Generation with Directory Context
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Add a new REST endpoint for user management following the existing patterns",
+  "directoryPath": "/home/gat/devel/learn/ai-generated/coding-agent/src"
+}
+
+###
+
+### Code Analysis with Directory Context
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Analyze the code quality and suggest improvements",
+  "directoryPath": "/home/gat/devel/learn/ai-generated/coding-agent/src"
+}
+
+###
+
+### Bug Fix with Directory Context
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Review the agent implementations and fix any potential issues",
+  "directoryPath": "/home/gat/devel/learn/ai-generated/coding-agent/src"
+}
+
+###
+
+### Analyze Specific Code Pattern
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Analyze the service layer architecture and dependency injection patterns",
+  "directoryPath": "/home/gat/devel/learn/ai-generated/coding-agent/src/main/java/com/codingagent/service"
+}
+
+###
