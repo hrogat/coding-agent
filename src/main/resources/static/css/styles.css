@@ -1,0 +1,33 @@
+/* Improved layout for finish_task and Task Complete events */
+.task-complete {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-complete h2 {
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.task-complete p {
+    margin: 10px 0;
+}
+
+.task-complete .summary {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.task-complete .timestamp {
+    font-size: 12px;
+    color: #7f8c8d;
+}
