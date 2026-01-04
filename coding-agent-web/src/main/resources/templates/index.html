@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Agent Web Interface</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/streaming.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Coding Agent</h1>
+        <p class="subtitle">AI-powered code generation, analysis, and bug fixing with real-time streaming</p>
+
+        <form id="agentForm">
+            <div class="form-group">
+                <label for="prompt">Task Description:</label>
+                <textarea 
+                    id="prompt" 
+                    name="prompt" 
+                    rows="6" 
+                    required
+                    placeholder="Describe what you want the AI to do... (e.g., 'Create a REST API for user management' or 'Fix the null pointer exception in UserService')"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="directoryPath">Project Directory (optional):</label>
+                <input 
+                    type="text" 
+                    id="directoryPath" 
+                    name="directoryPath"
+                    placeholder="/path/to/your/project">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="useCollaboration" name="useCollaboration">
+                    Use Collaboration Mode (Code → Analysis → Refinement)
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                🚀 Start Streaming Task
+            </button>
+        </form>
+
+        <div id="loadingSpinner" class="spinner" style="display: none;">
+            <div class="spinner-border"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div id="resultSection" class="result-section" style="display: none;">
+            <h2>Response</h2>
+            <div id="resultContent" class="result-content"></div>
+        </div>
+    </div>
+
+    <script src="/js/app-streaming.js"></script>
+</body>
+</html>

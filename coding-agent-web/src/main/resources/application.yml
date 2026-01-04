@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: coding-agent-web
+  mvc:
+    async:
+      request-timeout: 2000000
+
+server:
+  port: 8081
+
+coding-agent:
+  backend-url: http://localhost:8080
+  timeout-minutes: 35
+  default-directory: ${user.dir}
+
+logging:
+  level:
+    com.codingagent: DEBUG
