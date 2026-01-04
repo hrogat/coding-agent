@@ -1,33 +1,38 @@
 package com.codingagent.service.agent;
 
 import com.codingagent.model.AgentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.codingagent.service.tool.Tool;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
-public class BugfixAgent implements Agent {
-
-    private static final Logger logger = LoggerFactory.getLogger(BugfixAgent.class);
-
-    private final ChatModel chatModel;
+public class BugfixAgent extends StreamingToolBasedAgent {
 
     private static final String SYSTEM_PROMPT = """
-            You are a debugging and bug-fixing expert. Your role is to:
+            You are a debugging and bug-fixing expert working with a tool-based system.
+            
+            Your role:
             - Identify the root cause of bugs and errors
             - Provide clear explanations of what went wrong
-            - Suggest specific fixes with code examples
-            - Recommend preventive measures to avoid similar issues
+            - Apply specific fixes to resolve issues
             - Consider edge cases and potential side effects
             
-            Always explain the reasoning behind your fixes and provide working solutions.
+            IMPORTANT INSTRUCTIONS:
+            1. Use log_thought to document your debugging process
+            2. Use list_files and read_file to examine the codebase
+            3. Use write_file to apply fixes
+            4. Explain the reasoning behind your fixes
+            5. MUST call finish_task when bug is fixed
+            
+            Tool call format:
+            TOOL: tool_name {"param": "value"}
             """;
 
-    public BugfixAgent(ChatModel chatModel) {
-        this.chatModel = chatModel;
+    public BugfixAgent(ChatModel chatModel, @Qualifier("bugfixTools") List<Tool> tools) {
+        super(chatModel, tools);
     }
 
     @Override
@@ -36,24 +41,12 @@ public class BugfixAgent implements Agent {
     }
 
     @Override
-    public String execute(String prompt, String directoryContext) {
-        logger.debug("BugfixAgent executing with prompt: {}", prompt);
-        
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(SYSTEM_PROMPT);
-        String systemMessage = systemPromptTemplate.render();
-        
-        StringBuilder fullPromptText = new StringBuilder(systemMessage);
-        
-        if (directoryContext != null && !directoryContext.isEmpty()) {
-            fullPromptText.append("\n\n").append(directoryContext);
-        }
-        
-        fullPromptText.append("\n\nUser request: ").append(prompt);
-        
-        Prompt fullPrompt = new Prompt(fullPromptText.toString());
-        String result = chatModel.call(fullPrompt).getResult().getOutput().getContent();
-        
-        logger.debug("BugfixAgent result: {}", result);
-        return result;
+    protected String buildSystemPrompt() {
+        return SYSTEM_PROMPT;
+    }
+
+    @Override
+    protected String getLogPrefix() {
+        return "🐞 BugfixAgent";
     }
 }

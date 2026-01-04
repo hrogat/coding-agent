@@ -1,0 +1,17 @@
+### Test Streaming Endpoint
+POST http://localhost:8080/api/agent/stream
+Content-Type: application/json
+
+{
+  "prompt": "Create a simple Hello.java file that prints Hello World",
+  "directoryPath": "/tmp/test-streaming"
+}
+
+### Test Non-Streaming Endpoint (for comparison)
+POST http://localhost:8080/api/agent/process
+Content-Type: application/json
+
+{
+  "prompt": "Create a simple Hello.java file that prints Hello World",
+  "directoryPath": "/tmp/test-non-streaming"
+}
