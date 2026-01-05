@@ -94,8 +94,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'TOOL_RESULT':
                 const toolIcon = getToolIcon(event.toolName);
                 const resultText = formatToolResult(event.toolName, event.toolResult);
+                const eventClass = event.toolName === 'finish_task' ? 'finish-task-event' : 'tool-result-event';
                 eventHtml = `
-                    <div class="event-card tool-result-event">
+                    <div class="event-card ${eventClass}">
                         <div class="event-header">
                             <span>${toolIcon}</span>
                             <span>${escapeHtml(event.toolName)}</span>
@@ -174,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
+            return `<strong>✅ Task completed successfully!</strong><br><br>${escapeHtml(result)}`;
         }
         
         // Default formatting
