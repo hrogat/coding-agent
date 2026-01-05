@@ -10,7 +10,7 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.event-card {
+event-card {
     margin: 15px 20px;
     border-radius: 12px;
     overflow: hidden;
@@ -30,7 +30,7 @@
     }
 }
 
-.event-header {
+event-header {
     padding: 14px 18px;
     font-weight: 600;
     font-size: 1.1em;
@@ -39,7 +39,7 @@
     gap: 10px;
 }
 
-.event-content {
+event-content {
     padding: 18px;
     background: white;
     line-height: 1.7;
@@ -47,7 +47,7 @@
     color: #2c3e50;
 }
 
-.event-content pre {
+event-content pre {
     background: #f8f9fa;
     padding: 14px;
     border-radius: 8px;
@@ -184,4 +184,41 @@
         padding: 14px;
         font-size: 0.95em;
     }
+}
+
+/* Improved formatting for finish_task and TASK_COMPLETE */
+.finish-task-event {
+    border: 3px solid #27ae60;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+}
+
+.finish-task-event .event-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    font-size: 1.2em;
+    padding: 18px;
+}
+
+.finish-task-event .event-content {
+    background: transparent;
+    font-weight: 500;
+    font-size: 1.05em;
+}
+
+.task-complete-summary {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.task-complete-summary h3 {
+    color: #28a745;
+    margin-bottom: 10px;
+}
+
+.task-complete-summary p {
+    color: #2c3e50;
+    line-height: 1.6;
 }
