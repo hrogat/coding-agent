@@ -106,13 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
                 
             case 'TASK_COMPLETE':
+                const formattedMessage = formatTaskCompleteMessage(event.message);
                 eventHtml = `
                     <div class="event-card complete-event">
                         <div class="event-header">
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content">${formattedMessage}</div>
                     </div>
                 `;
                 break;
@@ -174,11 +175,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
+            return formatTaskCompleteMessage(result);
         }
         
         // Default formatting
         return `<pre>${escapeHtml(result)}</pre>`;
+    }
+
+    function formatTaskCompleteMessage(message) {
+        if (!message) return '';
+        
+        // Format the message with a success icon and a more readable structure
+        return `
+            <div class="task-complete-message">
+                <div class="task-complete-icon">✅</div>
+                <div class="task-complete-text">${escapeHtml(message)}</div>
+            </div>
+        `;
     }
 
     function escapeHtml(text) {
