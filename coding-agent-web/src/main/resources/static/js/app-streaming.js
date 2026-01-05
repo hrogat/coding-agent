@@ -106,13 +106,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
                 
             case 'TASK_COMPLETE':
+                const summary = extractSummary(event.message);
                 eventHtml = `
                     <div class="event-card complete-event">
                         <div class="event-header">
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content">
+                            <div class="task-summary">
+                                <h3>📋 Summary</h3>
+                                <p>${escapeHtml(summary)}</p>
+                            </div>
+                        </div>
                     </div>
                 `;
                 break;
@@ -179,6 +185,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Default formatting
         return `<pre>${escapeHtml(result)}</pre>`;
+    }
+
+    function extractSummary(message) {
+        if (!message) return '';
+        
+        // Extract the summary from the message if it starts with "TASK_COMPLETE: "
+        if (message.startsWith('TASK_COMPLETE: ')) {
+            return message.substring('TASK_COMPLETE: '.length);
+        }
+        
+        return message;
     }
 
     function escapeHtml(text) {
