@@ -1,190 +1,222 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('agentForm');
-    const resultSection = document.getElementById('resultSection');
+let eventIdCounter = 0;
+let isStreaming = false;
+let eventSource = null;
+
+function startStreaming() {
+    const taskInput = document.getElementById('taskInput');
     const resultContent = document.getElementById('resultContent');
-    const loadingSpinner = document.getElementById('loadingSpinner');
-
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    
+    if (isStreaming) {
+        alert('A task is already in progress. Please wait for it to complete.');
+        return;
+    }
+    
+    const task = taskInput.value.trim();
+    if (!task) {
+        alert('Please enter a task description.');
+        return;
+    }
+    
+    // Clear previous results
+    resultContent.innerHTML = '';
+    
+    // Show loading state
+    const loadingElement = document.createElement('div');
+    loadingElement.className = 'event-card';
+    loadingElement.innerHTML = `
+        <div class="event-header">
+            <div class="spinner-border" style="width: 24px; height: 24px; border-width: 2px;"></div>
+            Processing your task...
+        </div>
+        <div class="event-content">
+            <p>Please wait while we process your request. This may take a moment.</p>
+        </div>
+    `;
+    resultContent.appendChild(loadingElement);
+    
+    // Scroll to bottom
+    resultContent.scrollTop = resultContent.scrollHeight;
+    
+    isStreaming = true;
+    
+    // Start SSE connection
+    eventSource = new EventSource(`/api/stream?task=${encodeURIComponent(task)}`);
+    
+    eventSource.onopen = () => {
+        console.log('SSE connection opened');
+    };
+    
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleEvent(data);
+    };
+    
+    eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        if (eventSource) {
+            eventSource.close();
+        }
+        isStreaming = false;
         
-        const prompt = document.getElementById('prompt').value;
-        const directoryPath = document.getElementById('directoryPath').value;
-        const useCollaboration = document.getElementById('useCollaboration').checked;
+        const errorElement = document.createElement('div');
+        errorElement.className = 'event-card error-event';
+        errorElement.innerHTML = `
+            <div class="event-header">
+                Connection Error
+            </div>
+            <div class="event-content">
+                <p>There was an error with the streaming connection. Please try again.</p>
+            </div>
+        `;
+        resultContent.appendChild(errorElement);
+        resultContent.scrollTop = resultContent.scrollHeight;
+    };
+}
 
-        resultSection.style.display = 'block';
-        resultContent.innerHTML = '<div class="stream-header">🔴 Live Response Stream</div>';
-        loadingSpinner.style.display = 'block';
+function handleEvent(data) {
+    const resultContent = document.getElementById('resultContent');
+    
+    // Remove loading indicator if present
+    const loadingElement = resultContent.querySelector('.event-content:contains("Please wait")');
+    if (loadingElement) {
+        loadingElement.parentElement.remove();
+    }
+    
+    const eventElement = document.createElement('div');
+    eventElement.className = `event-card ${getEventClass(data.type)}`;
+    eventElement.id = `event-${eventIdCounter++}`;
+    
+    if (data.type === 'TASK_COMPLETE') {
+        eventElement.innerHTML = formatTaskComplete(data);
+    } else if (data.type === 'TOOL_RESULT') {
+        eventElement.innerHTML = formatToolResult(data);
+    } else if (data.type === 'ITERATION') {
+        eventElement.innerHTML = formatIteration(data);
+    } else if (data.type === 'ERROR') {
+        eventElement.innerHTML = formatError(data);
+    }
+    
+    resultContent.appendChild(eventElement);
+    resultContent.scrollTop = resultContent.scrollHeight;
+    
+    if (data.type === 'TASK_COMPLETE' || data.type === 'ERROR') {
+        if (eventSource) {
+            eventSource.close();
+        }
+        isStreaming = false;
+    }
+}
 
-        try {
-            const response = await fetch('/api/stream', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    directoryPath: directoryPath,
-                    useCollaboration: useCollaboration
-                })
-            });
+function getEventClass(type) {
+    switch (type) {
+        case 'TASK_COMPLETE': return 'complete-event';
+        case 'TOOL_RESULT': return 'tool-result-event';
+        case 'ITERATION': return 'iteration-event';
+        case 'ERROR': return 'error-event';
+        default: return '';
+    }
+}
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+function formatTaskComplete(data) {
+    return `
+        <div class="event-header">
+            Task Completed Successfully
+        </div>
+        <div class="event-content">
+            <p><strong>Task Summary:</strong> ${escapeHtml(data.message || 'Task completed successfully.')}</p>
+            ${data.details ? `<p><strong>Details:</strong> ${escapeHtml(data.details)}</p>` : ''}
+        </div>
+    `;
+}
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-                const {done, value} = await reader.read();
-                
-                if (done) {
-                    loadingSpinner.style.display = 'none';
-                    break;
-                }
-
-                buffer += decoder.decode(value, {stream: true});
-                const lines = buffer.split('\n');
-                buffer = lines.pop();
-
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        const jsonStr = line.substring(5).trim();
-                        if (jsonStr) {
-                            try {
-                                const event = JSON.parse(jsonStr);
-                                displayEvent(event);
-                            } catch (e) {
-                                console.error('Error parsing event:', e, jsonStr);
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (error) {
-            console.error('Error:', error);
-            loadingSpinner.style.display = 'none';
-            resultContent.innerHTML += `
-                <div class="event-card error-event">
-                    <div class="event-header">❌ Error</div>
-                    <div class="event-content">${escapeHtml(error.message)}</div>
+function formatToolResult(data) {
+    let paramsHtml = '';
+    if (data.params && Object.keys(data.params).length > 0) {
+        paramsHtml = `
+            <div class="tool-params">
+                <strong>Parameters:</strong>
+                <pre>${JSON.stringify(data.params, null, 2)}</pre>
+            </div>
+        `;
+    }
+    
+    let resultHtml = '';
+    if (data.result) {
+        if (data.tool_name === 'finish_task') {
+            resultHtml = `
+                <div class="finish-task-result">
+                    <strong>Task Completion Summary:</strong>
+                    <p>${escapeHtml(data.result)}</p>
+                </div>
+            `;
+        } else {
+            resultHtml = `
+                <div class="tool-result">
+                    <strong>Result:</strong>
+                    <pre>${escapeHtml(data.result)}</pre>
                 </div>
             `;
         }
-    });
-
-    function displayEvent(event) {
-        let eventHtml = '';
-        
-        switch(event.type) {
-            case 'ITERATION_START':
-                eventHtml = `
-                    <div class="event-card iteration-event">
-                        <div class="event-header">
-                            <span>🔄</span>
-                            <span>Iteration ${event.iteration}</span>
-                        </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'TOOL_RESULT':
-                const toolIcon = getToolIcon(event.toolName);
-                const resultText = formatToolResult(event.toolName, event.toolResult);
-                eventHtml = `
-                    <div class="event-card tool-result-event">
-                        <div class="event-header">
-                            <span>${toolIcon}</span>
-                            <span>${escapeHtml(event.toolName)}</span>
-                        </div>
-                        <div class="event-content">${resultText}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'TASK_COMPLETE':
-                eventHtml = `
-                    <div class="event-card complete-event">
-                        <div class="event-header">
-                            <span>✅</span>
-                            <span>Task Complete</span>
-                        </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'ERROR':
-                eventHtml = `
-                    <div class="event-card error-event">
-                        <div class="event-header">
-                            <span>❌</span>
-                            <span>Error</span>
-                        </div>
-                        <div class="event-content">
-                            ${escapeHtml(event.message || event.error)}
-                        </div>
-                    </div>
-                `;
-                break;
-        }
-        
-        if (eventHtml) {
-            resultContent.insertAdjacentHTML('beforeend', eventHtml);
-            resultContent.scrollTop = resultContent.scrollHeight;
-        }
     }
+    
+    return `
+        <div class="event-header">
+            <span class="tool-icon">🔧</span>
+            <span class="tool-name">${escapeHtml(data.tool_name)}</span>
+        </div>
+        <div class="event-content">
+            ${paramsHtml}
+            ${resultHtml}
+        </div>
+    `;
+}
 
-    function getToolIcon(toolName) {
-        const icons = {
-            'write_file': '📝',
-            'read_file': '📖',
-            'list_files': '📂',
-            'log_thought': '💭',
-            'finish_task': '✅'
-        };
-        return icons[toolName] || '🔧';
-    }
+function formatIteration(data) {
+    return `
+        <div class="event-header">
+            <span class="iteration-icon">🔄</span>
+            <span class="iteration-text">Iteration ${data.iteration}</span>
+        </div>
+        <div class="event-content">
+            <p><strong>Thought:</strong> ${escapeHtml(data.thought)}</p>
+            ${data.plan ? `<p><strong>Plan:</strong> ${escapeHtml(data.plan)}</p>` : ''}
+        </div>
+    `;
+}
 
-    function formatToolResult(toolName, result) {
-        if (!result) return '';
-        
-        // For file operations, format nicely
-        if (toolName === 'write_file' && result.startsWith('Success')) {
-            const path = result.replace('Success: File written to ', '');
-            return `<strong>✓ File created:</strong> <code>${escapeHtml(path)}</code>`;
-        }
-        
-        if (toolName === 'read_file') {
-            return `<strong>✓ File read successfully</strong> (content not displayed)`;
-        }
-        
-        if (toolName === 'list_files') {
-            // Format file list nicely
-            const lines = result.split('\n');
-            if (lines.length > 10) {
-                const shown = lines.slice(0, 10);
-                const remaining = lines.length - 10;
-                return `<pre>${escapeHtml(shown.join('\n'))}\n... and ${remaining} more items</pre>`;
-            }
-            return `<pre>${escapeHtml(result)}</pre>`;
-        }
-        
-        if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
-        }
-        
-        // Default formatting
-        return `<pre>${escapeHtml(result)}</pre>`;
-    }
+function formatError(data) {
+    return `
+        <div class="event-header">
+            Error Encountered
+        </div>
+        <div class="event-content">
+            <p><strong>Error:</strong> ${escapeHtml(data.message)}</p>
+            ${data.details ? `<p><strong>Details:</strong> ${escapeHtml(data.details)}</p>` : ''}
+        </div>
+    `;
+}
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function stopStreaming() {
+    if (eventSource) {
+        eventSource.close();
+        eventSource = null;
     }
+    isStreaming = false;
+}
+
+// Handle form submission
+document.getElementById('taskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    startStreaming();
+});
+
+// Handle page unload
+window.addEventListener('beforeunload', function() {
+    stopStreaming();
 });
