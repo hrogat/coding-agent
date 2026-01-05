@@ -94,15 +94,30 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'TOOL_RESULT':
                 const toolIcon = getToolIcon(event.toolName);
                 const resultText = formatToolResult(event.toolName, event.toolResult);
-                eventHtml = `
-                    <div class="event-card tool-result-event">
-                        <div class="event-header">
-                            <span>${toolIcon}</span>
-                            <span>${escapeHtml(event.toolName)}</span>
+                
+                if (event.toolName === 'finish_task') {
+                    eventHtml = `
+                        <div class="event-card finish-task-event">
+                            <div class="event-header">
+                                <span>✅</span>
+                                <span>Task Complete</span>
+                            </div>
+                            <div class="event-content">
+                                <strong>${resultText}</strong>
+                            </div>
                         </div>
-                        <div class="event-content">${resultText}</div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    eventHtml = `
+                        <div class="event-card tool-result-event">
+                            <div class="event-header">
+                                <span>${toolIcon}</span>
+                                <span>${escapeHtml(event.toolName)}</span>
+                            </div>
+                            <div class="event-content">${resultText}</div>
+                        </div>
+                    `;
+                }
                 break;
                 
             case 'TASK_COMPLETE':
@@ -112,7 +127,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content">
+                            <strong>${escapeHtml(event.message)}</strong>
+                        </div>
                     </div>
                 `;
                 break;
