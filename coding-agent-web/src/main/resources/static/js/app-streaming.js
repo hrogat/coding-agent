@@ -106,13 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
                 
             case 'TASK_COMPLETE':
+                const formattedMessage = formatTaskCompleteMessage(event.message);
                 eventHtml = `
                     <div class="event-card complete-event">
                         <div class="event-header">
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content">${formattedMessage}</div>
                     </div>
                 `;
                 break;
@@ -179,6 +180,29 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Default formatting
         return `<pre>${escapeHtml(result)}</pre>`;
+    }
+
+    function formatTaskCompleteMessage(message) {
+        if (!message) return '';
+        
+        // Extract the actual summary from the message
+        // Message format: "Task completed successfully: TASK_COMPLETE: summary"
+        let summary = message.replace('Task completed successfully: TASK_COMPLETE: ', '')
+                          .replace('Task completed successfully: ', '');
+        
+        // Clean up any extra whitespace
+        summary = summary.trim();
+        
+        // Format with better HTML structure
+        return `
+            <div class="task-complete-content">
+                <div class="task-complete-icon">✅</div>
+                <div class="task-complete-text">
+                    <h3>Task Completed Successfully!</h3>
+                    <p class="task-summary">${escapeHtml(summary)}</p>
+                </div>
+            </div>
+        `;
     }
 
     function escapeHtml(text) {

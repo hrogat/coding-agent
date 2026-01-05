@@ -10,7 +10,7 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.event-card {
+event-card {
     margin: 15px 20px;
     border-radius: 12px;
     overflow: hidden;
@@ -30,7 +30,7 @@
     }
 }
 
-.event-header {
+event-header {
     padding: 14px 18px;
     font-weight: 600;
     font-size: 1.1em;
@@ -39,7 +39,7 @@
     gap: 10px;
 }
 
-.event-content {
+event-content {
     padding: 18px;
     background: white;
     line-height: 1.7;
@@ -47,7 +47,7 @@
     color: #2c3e50;
 }
 
-.event-content pre {
+event-content pre {
     background: #f8f9fa;
     padding: 14px;
     border-radius: 8px;
@@ -109,6 +109,50 @@
     background: transparent;
     font-weight: 500;
     font-size: 1.05em;
+    padding: 24px;
+}
+
+.task-complete-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.task-complete-icon {
+    font-size: 2.5em;
+    color: #28a745;
+    flex-shrink: 0;
+}
+
+.task-complete-text {
+    flex: 1;
+}
+
+.task-complete-text h3 {
+    color: #28a745;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.3em;
+}
+
+.task-summary {
+    margin: 0;
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #2c3e50;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+event-card {
+    margin: 15px 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    animation: slideIn 0.4s ease-out;
+    background: white;
 }
 
 .error-event {
@@ -183,5 +227,15 @@
     .event-content {
         padding: 14px;
         font-size: 0.95em;
+    }
+    
+    .task-complete-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .task-complete-icon {
+        font-size: 2em;
+        margin-bottom: 10px;
     }
 }
