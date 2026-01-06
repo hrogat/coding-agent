@@ -96,19 +96,31 @@
 .complete-event {
     border: 3px solid #27ae60;
     background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    box-shadow: 0 6px 15px rgba(46, 125, 50, 0.2);
 }
 
 .complete-event .event-header {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
-    font-size: 1.2em;
-    padding: 18px;
+    font-size: 1.3em;
+    padding: 20px;
+    text-align: center;
 }
 
 .complete-event .event-content {
     background: transparent;
     font-weight: 500;
-    font-size: 1.05em;
+    font-size: 1.1em;
+    text-align: center;
+    padding: 25px;
+    color: #155724;
+}
+
+.complete-event .event-content::before {
+    content: "✅";
+    display: block;
+    font-size: 2.5em;
+    margin-bottom: 15px;
 }
 
 .error-event {
@@ -184,4 +196,25 @@
         padding: 14px;
         font-size: 0.95em;
     }
+}
+
+/* Finish task specific styling */
+.finish-task-result {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin: 15px 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #155724;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.15);
+}
+
+.finish-task-result::before {
+    content: "✅";
+    display: block;
+    font-size: 2em;
+    margin-bottom: 10px;
 }
