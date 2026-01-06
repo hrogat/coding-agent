@@ -4,14 +4,12 @@ import com.codingagent.web.model.AgentRequest;
 import com.codingagent.web.model.AgentResponse;
 import com.codingagent.web.model.StreamEvent;
 import com.codingagent.web.service.AgentClientService;
+import com.codingagent.web.service.PotentiationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,9 +20,11 @@ public class ApiController {
     private static final Logger logger = LoggerFactory.getLogger(ApiController.class);
 
     private final AgentClientService agentClientService;
+    private final PotentiationService potentiationService;
 
-    public ApiController(AgentClientService agentClientService) {
+    public ApiController(AgentClientService agentClientService, PotentiationService potentiationService) {
         this.agentClientService = agentClientService;
+        this.potentiationService = potentiationService;
     }
 
     @PostMapping("/submit")
@@ -44,5 +44,13 @@ public class ApiController {
         logger.info("Received streaming request: {}", request.getPrompt());
         
         return agentClientService.processRequestStream(request);
+    }
+
+    @GetMapping("/potentiation")
+    public ResponseEntity<Double> calculatePotentiation(@RequestParam double base, @RequestParam double exponent) {
+        logger.info("Calculating potentiation: {}^ {}", base, exponent);
+        
+        double result = potentiationService.calculatePotentiation(base, exponent);
+        return ResponseEntity.ok(result);
     }
 }
