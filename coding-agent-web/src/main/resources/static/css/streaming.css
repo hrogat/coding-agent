@@ -185,3 +185,50 @@
         font-size: 0.95em;
     }
 }
+
+/* Enhanced styling for TASK_COMPLETE event */
+.complete-event .event-content {
+    padding: 24px;
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 1.8;
+}
+
+.complete-event .event-content p {
+    margin-bottom: 16px;
+}
+
+.complete-event .event-content .summary {
+    font-weight: 600;
+    color: #28a745;
+    font-size: 1.2em;
+    margin-top: 10px;
+}
+
+.complete-event .event-content .additional-info {
+    margin-top: 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+/* Enhanced styling for finish_task tool result */
+.tool-result-event .event-content {
+    padding: 20px;
+}
+
+.tool-result-event .event-content .result-summary {
+    font-weight: 600;
+    color: #27ae60;
+    font-size: 1.1em;
+    margin-bottom: 12px;
+}
+
+.tool-result-event .event-content .result-details {
+    background: #f8f9fa;
+    padding: 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+    border-left: 4px solid #27ae60;
+}

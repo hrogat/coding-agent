@@ -1,190 +1,225 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('agentForm');
-    const resultSection = document.getElementById('resultSection');
+let eventSource;
+let isStreaming = false;
+
+function startStreaming() {
+    if (isStreaming) {
+        return;
+    }
+
+    const taskId = document.getElementById('taskId').value;
     const resultContent = document.getElementById('resultContent');
-    const loadingSpinner = document.getElementById('loadingSpinner');
 
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const prompt = document.getElementById('prompt').value;
-        const directoryPath = document.getElementById('directoryPath').value;
-        const useCollaboration = document.getElementById('useCollaboration').checked;
+    if (!taskId) {
+        alert('Please enter a task ID');
+        return;
+    }
 
-        resultSection.style.display = 'block';
-        resultContent.innerHTML = '<div class="stream-header">🔴 Live Response Stream</div>';
-        loadingSpinner.style.display = 'block';
+    resultContent.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>Loading task events...</p></div>';
 
-        try {
-            const response = await fetch('/api/stream', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    directoryPath: directoryPath,
-                    useCollaboration: useCollaboration
-                })
-            });
+    eventSource = new EventSource(`/api/tasks/${taskId}/stream`);
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+    eventSource.onopen = () => {
+        isStreaming = true;
+        console.log('Connection to server opened');
+    };
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        displayEvent(data);
+    };
 
-            while (true) {
-                const {done, value} = await reader.read();
-                
-                if (done) {
-                    loadingSpinner.style.display = 'none';
-                    break;
-                }
+    eventSource.onerror = (error) => {
+        console.error('EventSource failed:', error);
+        resultContent.innerHTML += '<div class="event-card error-event"><div class="event-header">Error</div><div class="event-content">Failed to connect to the event stream. Please try again.</div></div>';
+        stopStreaming();
+    };
+}
 
-                buffer += decoder.decode(value, {stream: true});
-                const lines = buffer.split('\n');
-                buffer = lines.pop();
+function stopStreaming() {
+    if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+        isStreaming = false;
+        console.log('Connection closed');
+    }
+}
 
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        const jsonStr = line.substring(5).trim();
-                        if (jsonStr) {
-                            try {
-                                const event = JSON.parse(jsonStr);
-                                displayEvent(event);
-                            } catch (e) {
-                                console.error('Error parsing event:', e, jsonStr);
-                            }
-                        }
-                    }
-                }
-            }
+function displayEvent(data) {
+    const resultContent = document.getElementById('resultContent');
 
-        } catch (error) {
-            console.error('Error:', error);
-            loadingSpinner.style.display = 'none';
-            resultContent.innerHTML += `
-                <div class="event-card error-event">
-                    <div class="event-header">❌ Error</div>
-                    <div class="event-content">${escapeHtml(error.message)}</div>
+    if (data.eventType === 'TASK_STARTED') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card iteration-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>🚀</span>
+                <span>Task Started</span>
+            </div>
+            <div class="event-content">
+                <p>Task execution has started.</p>
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
+    }
+
+    else if (data.eventType === 'ITERATION_STARTED') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card iteration-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>🔄</span>
+                <span>Iteration ${data.iteration}</span>
+            </div>
+            <div class="event-content">
+                <p>Starting iteration ${data.iteration}.</p>
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
+    }
+
+    else if (data.eventType === 'TOOL_CALL') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card tool-call-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>🛠️</span>
+                <span>${data.toolName}</span>
+            </div>
+            <div class="event-content">
+                <p>Calling tool: ${data.toolName}</p>
+                <div class="tool-params">
+                    <strong>Parameters:</strong>
+                    <pre>${JSON.stringify(data.parameters, null, 2)}</pre>
                 </div>
-            `;
-        }
-    });
-
-    function displayEvent(event) {
-        let eventHtml = '';
-        
-        switch(event.type) {
-            case 'ITERATION_START':
-                eventHtml = `
-                    <div class="event-card iteration-event">
-                        <div class="event-header">
-                            <span>🔄</span>
-                            <span>Iteration ${event.iteration}</span>
-                        </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'TOOL_RESULT':
-                const toolIcon = getToolIcon(event.toolName);
-                const resultText = formatToolResult(event.toolName, event.toolResult);
-                eventHtml = `
-                    <div class="event-card tool-result-event">
-                        <div class="event-header">
-                            <span>${toolIcon}</span>
-                            <span>${escapeHtml(event.toolName)}</span>
-                        </div>
-                        <div class="event-content">${resultText}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'TASK_COMPLETE':
-                eventHtml = `
-                    <div class="event-card complete-event">
-                        <div class="event-header">
-                            <span>✅</span>
-                            <span>Task Complete</span>
-                        </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
-                    </div>
-                `;
-                break;
-                
-            case 'ERROR':
-                eventHtml = `
-                    <div class="event-card error-event">
-                        <div class="event-header">
-                            <span>❌</span>
-                            <span>Error</span>
-                        </div>
-                        <div class="event-content">
-                            ${escapeHtml(event.message || event.error)}
-                        </div>
-                    </div>
-                `;
-                break;
-        }
-        
-        if (eventHtml) {
-            resultContent.insertAdjacentHTML('beforeend', eventHtml);
-            resultContent.scrollTop = resultContent.scrollHeight;
-        }
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
     }
 
-    function getToolIcon(toolName) {
-        const icons = {
-            'write_file': '📝',
-            'read_file': '📖',
-            'list_files': '📂',
-            'log_thought': '💭',
-            'finish_task': '✅'
-        };
-        return icons[toolName] || '🔧';
+    else if (data.eventType === 'TOOL_RESULT') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card tool-result-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>✅</span>
+                <span>${data.toolName} Result</span>
+            </div>
+            <div class="event-content">
+                <p>Tool execution completed: ${data.toolName}</p>
+                <div class="result-summary">
+                    ${data.result}
+                </div>
+                ${data.details ? `
+                    <div class="result-details">
+                        <strong>Details:</strong>
+                        <pre>${JSON.stringify(data.details, null, 2)}</pre>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
     }
 
-    function formatToolResult(toolName, result) {
-        if (!result) return '';
-        
-        // For file operations, format nicely
-        if (toolName === 'write_file' && result.startsWith('Success')) {
-            const path = result.replace('Success: File written to ', '');
-            return `<strong>✓ File created:</strong> <code>${escapeHtml(path)}</code>`;
-        }
-        
-        if (toolName === 'read_file') {
-            return `<strong>✓ File read successfully</strong> (content not displayed)`;
-        }
-        
-        if (toolName === 'list_files') {
-            // Format file list nicely
-            const lines = result.split('\n');
-            if (lines.length > 10) {
-                const shown = lines.slice(0, 10);
-                const remaining = lines.length - 10;
-                return `<pre>${escapeHtml(shown.join('\n'))}\n... and ${remaining} more items</pre>`;
-            }
-            return `<pre>${escapeHtml(result)}</pre>`;
-        }
-        
-        if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
-        }
-        
-        // Default formatting
-        return `<pre>${escapeHtml(result)}</pre>`;
+    else if (data.eventType === 'TASK_COMPLETE') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card complete-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>🎉</span>
+                <span>Task Complete</span>
+            </div>
+            <div class="event-content">
+                <p>Task execution has been completed successfully!</p>
+                <div class="summary">
+                    ${data.summary}
+                </div>
+                ${data.additionalInfo ? `
+                    <div class="additional-info">
+                        <strong>Additional Information:</strong>
+                        <pre>${JSON.stringify(data.additionalInfo, null, 2)}</pre>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
+        stopStreaming();
     }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    else if (data.eventType === 'ERROR') {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card error-event';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>❌</span>
+                <span>Error</span>
+            </div>
+            <div class="event-content">
+                <p><strong>Error:</strong> ${data.message}</p>
+                ${data.details ? `
+                    <div class="error-details">
+                        <strong>Details:</strong>
+                        <pre>${JSON.stringify(data.details, null, 2)}</pre>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
+        stopStreaming();
+    }
+
+    else {
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card';
+        eventCard.innerHTML = `
+            <div class="event-header">
+                <span>ℹ️</span>
+                <span>Unknown Event</span>
+            </div>
+            <div class="event-content">
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+        resultContent.appendChild(eventCard);
+    }
+
+    resultContent.scrollTop = resultContent.scrollHeight;
+}
+
+function copyToClipboard() {
+    const taskId = document.getElementById('taskId').value;
+    if (taskId) {
+        navigator.clipboard.writeText(taskId).then(() => {
+            alert('Task ID copied to clipboard!');
+        });
+    }
+}
+
+function generateTaskId() {
+    const taskId = 'task-' + Math.random().toString(36).substr(2, 9);
+    document.getElementById('taskId').value = taskId;
+    copyToClipboard();
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('startStreamingBtn');
+    const stopBtn = document.getElementById('stopStreamingBtn');
+    const copyBtn = document.getElementById('copyTaskIdBtn');
+    const generateBtn = document.getElementById('generateTaskIdBtn');
+
+    if (startBtn) {
+        startBtn.addEventListener('click', startStreaming);
+    }
+
+    if (stopBtn) {
+        stopBtn.addEventListener('click', stopStreaming);
+    }
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyToClipboard);
+    }
+
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateTaskId);
     }
 });

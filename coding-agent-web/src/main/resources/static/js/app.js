@@ -1,165 +1,105 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const promptInput = document.getElementById('prompt');
-    const directoryPathInput = document.getElementById('directoryPath');
-    const useCollaborationCheckbox = document.getElementById('useCollaboration');
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = submitBtn.querySelector('.btn-text');
-    const spinner = submitBtn.querySelector('.spinner');
+    const taskForm = document.getElementById('taskForm');
     const resultSection = document.getElementById('resultSection');
-    const errorSection = document.getElementById('errorSection');
-    const agentTypeElement = document.getElementById('agentType');
-    const reasoningElement = document.getElementById('reasoning');
-    const resultContentElement = document.getElementById('resultContent');
-    const errorMessageElement = document.getElementById('errorMessage');
+    const resultContent = document.getElementById('resultContent');
+    const copyBtn = document.getElementById('copyResultBtn');
 
-    submitBtn.addEventListener('click', handleSubmit);
+    if (taskForm) {
+        taskForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-    promptInput.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'Enter') {
-            handleSubmit();
-        }
-    });
+            const formData = new FormData(taskForm);
+            const taskId = formData.get('taskId');
 
-    async function handleSubmit() {
-        const prompt = promptInput.value.trim();
-        const directoryPath = directoryPathInput.value.trim();
-        const useCollaboration = useCollaborationCheckbox.checked;
-
-        if (!prompt) {
-            showError('Please enter a prompt');
-            return;
-        }
-
-        hideResults();
-        setLoading(true);
-
-        try {
-            const response = await fetch('/api/submit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    directoryPath: directoryPath || null,
-                    useCollaboration: useCollaboration
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+            if (!taskId) {
+                alert('Please enter a task ID');
+                return;
             }
 
-            const data = await response.json();
-            displayResult(data);
-        } catch (error) {
-            console.error('Error:', error);
-            showError(`Failed to process request: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    }
+            resultContent.innerHTML = '<div class="spinner"><div class="spinner-border"></div><p>Processing your request...</p></div>';
 
-    function setLoading(isLoading) {
-        submitBtn.disabled = isLoading;
-        if (isLoading) {
-            btnText.style.display = 'none';
-            spinner.style.display = 'inline-block';
-        } else {
-            btnText.style.display = 'inline';
-            spinner.style.display = 'none';
-        }
-    }
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ taskId })
+                });
 
-    function hideResults() {
-        resultSection.style.display = 'none';
-        errorSection.style.display = 'none';
-    }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-    function displayResult(data) {
-        agentTypeElement.textContent = data.agentType;
-        agentTypeElement.className = `agent-badge ${data.agentType}`;
-        reasoningElement.textContent = data.reasoning;
-        
-        const filesWrittenSection = document.getElementById('filesWrittenSection');
-        const filesWrittenList = document.getElementById('filesWrittenList');
-        
-        if (data.filesWritten && data.filesWritten.length > 0) {
-            filesWrittenList.innerHTML = '';
-            data.filesWritten.forEach(file => {
-                const li = document.createElement('li');
-                li.textContent = file;
-                filesWrittenList.appendChild(li);
-            });
-            filesWrittenSection.style.display = 'block';
-        } else {
-            filesWrittenSection.style.display = 'none';
-        }
-        
-        const formattedContent = formatMarkdown(data.result);
-        resultContentElement.innerHTML = formattedContent;
+                const result = await response.json();
 
-        resultSection.style.display = 'block';
-        resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+                if (result.success) {
+                    resultContent.innerHTML = `
+                        <div class="event-card complete-event">
+                            <div class="event-header">
+                                <span>🎉</span>
+                                <span>Task Complete</span>
+                            </div>
+                            <div class="event-content">
+                                <p>Task execution has been completed successfully!</p>
+                                <div class="summary">
+                                    ${result.summary}
+                                </div>
+                                ${result.additionalInfo ? `
+                                    <div class="additional-info">
+                                        <strong>Additional Information:</strong>
+                                        <pre>${JSON.stringify(result.additionalInfo, null, 2)}</pre>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultContent.innerHTML = `
+                        <div class="event-card error-event">
+                            <div class="event-header">
+                                <span>❌</span>
+                                <span>Error</span>
+                            </div>
+                            <div class="event-content">
+                                <p><strong>Error:</strong> ${result.message}</p>
+                                ${result.details ? `
+                                    <div class="error-details">
+                                        <strong>Details:</strong>
+                                        <pre>${JSON.stringify(result.details, null, 2)}</pre>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
 
-    function showError(message) {
-        errorMessageElement.textContent = message;
-        errorSection.style.display = 'block';
-        errorSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+                resultSection.style.display = 'block';
 
-    function formatMarkdown(text) {
-        let html = text;
-
-        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
-            const language = lang || 'text';
-            return `<pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>`;
-        });
-
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
-        html = html.replace(/^\d+\.\s+(.*)$/gim, function(match, item) {
-            return `<li>${item}</li>`;
-        });
-        html = html.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
-
-        html = html.replace(/^[-*]\s+(.*)$/gim, function(match, item) {
-            return `<li>${item}</li>`;
-        });
-        html = html.replace(/(<li>.*<\/li>)(?!<\/ol>)/gs, function(match) {
-            if (!match.includes('<ol>')) {
-                return '<ul>' + match + '</ul>';
+            } catch (error) {
+                console.error('Error:', error);
+                resultContent.innerHTML = `
+                    <div class="event-card error-event">
+                        <div class="event-header">
+                            <span>❌</span>
+                            <span>Error</span>
+                        </div>
+                        <div class="event-content">
+                            <p><strong>Error:</strong> ${error.message}</p>
+                        </div>
+                    </div>
+                `;
+                resultSection.style.display = 'block';
             }
-            return match;
         });
-
-        html = html.replace(/\n\n/g, '</p><p>');
-        html = '<p>' + html + '</p>';
-
-        html = html.replace(/<p><\/p>/g, '');
-        html = html.replace(/<p>(<h[1-3]>)/g, '$1');
-        html = html.replace(/(<\/h[1-3]>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<pre>)/g, '$1');
-        html = html.replace(/(<\/pre>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<ul>)/g, '$1');
-        html = html.replace(/(<\/ul>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<ol>)/g, '$1');
-        html = html.replace(/(<\/ol>)<\/p>/g, '$1');
-
-        return html;
     }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            const resultText = resultContent.innerText;
+            navigator.clipboard.writeText(resultText).then(() => {
+                alert('Result copied to clipboard!');
+            });
+        });
     }
 });
