@@ -113,8 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>Task Complete</span>
                         </div>
                         <div class="event-content">
-                            <h3 class="completion-heading">Task Successfully Completed</h3>
-                            <p class="completion-message">${escapeHtml(event.message)}</p>
+                            <div class="completion-container">
+                                <h3 class="completion-heading">🎉 Task Successfully Completed!</h3>
+                                <p class="completion-message">${escapeHtml(event.message)}</p>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -177,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<div class="completion-message">${escapeHtml(result)}</div>`;
+            return `<div class="completion-container"><h3 class="completion-heading">🎉 Task Complete!</h3><p class="completion-message">${escapeHtml(result)}</p></div>`;
         }
         
         // Default formatting
