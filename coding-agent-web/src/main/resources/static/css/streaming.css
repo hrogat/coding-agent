@@ -1,119 +1,84 @@
+/* Streaming-specific styles */
+
 .stream-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin: 20px;
+    font-size: 1.2em;
     font-weight: 600;
-    font-size: 1.3em;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    color: #667eea;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 16px;
 }
 
 .event-card {
-    margin: 15px 20px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    animation: slideIn 0.4s ease-out;
     background: white;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+    overflow: hidden;
+    border-left: 4px solid transparent;
 }
 
 .event-header {
-    padding: 14px 18px;
+    padding: 12px 16px;
     font-weight: 600;
-    font-size: 1.1em;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .event-content {
-    padding: 18px;
-    background: white;
-    line-height: 1.7;
-    font-size: 1em;
-    color: #2c3e50;
+    padding: 16px;
+    line-height: 1.6;
+    color: #333;
 }
 
 .event-content pre {
     background: #f8f9fa;
-    padding: 14px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 6px;
     overflow-x: auto;
-    margin: 10px 0 0 0;
+    margin: 8px 0;
+}
+
+.event-content code {
+    font-family: 'Courier New', Courier, monospace;
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
     font-size: 0.95em;
-    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-    line-height: 1.5;
-    border: 1px solid #e9ecef;
 }
 
-.tool-params {
-    margin-top: 12px;
-}
-
-.tool-params strong {
-    color: #495057;
-    display: block;
-    margin-bottom: 8px;
-}
-
-.tool-params pre {
-    background: #e8f4f8;
-    border-left: 4px solid #3498db;
-}
-
-/* Event type specific styling */
+/* Event type specific styles */
 .iteration-event {
-    border-left: 5px solid #667eea;
-}
-
-.iteration-event .event-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    border-left-color: #667eea;
 }
 
 .tool-result-event {
-    border-left: 5px solid #27ae60;
-}
-
-.tool-result-event .event-header {
-    background: #d4edda;
-    color: #155724;
+    border-left-color: #4a90e2;
 }
 
 .complete-event {
-    border: 3px solid #27ae60;
+    border-left-color: #28a745;
     background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
 }
 
 .complete-event .event-header {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: #28a745;
     color: white;
     font-size: 1.2em;
-    padding: 18px;
 }
 
 .complete-event .event-content {
-    background: transparent;
-    font-weight: 500;
-    font-size: 1.05em;
+    text-align: center;
+    font-size: 1.1em;
+    padding: 24px;
 }
 
 .error-event {
-    border: 3px solid #dc3545;
-    background: #f8d7da;
+    border-left-color: #dc3545;
 }
 
 .error-event .event-header {
@@ -121,67 +86,42 @@
     color: white;
 }
 
-.error-event .event-content {
-    background: transparent;
-    color: #721c24;
-    font-weight: 500;
-}
-
-#resultContent {
-    max-height: 70vh;
-    overflow-y: auto;
-    padding: 10px 0;
-}
-
-#resultContent::-webkit-scrollbar {
-    width: 10px;
-}
-
-#resultContent::-webkit-scrollbar-track {
-    background: #f1f3f5;
-    border-radius: 10px;
-}
-
-#resultContent::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-}
-
-#resultContent::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
-}
-
-/* Empty state */
-.empty-state {
+/* Task completion specific styling */
+.task-completion-message {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-radius: 12px;
+    padding: 30px;
+    margin: 20px 0;
     text-align: center;
-    padding: 60px 20px;
-    color: #6c757d;
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.2);
 }
 
-.empty-state-icon {
-    font-size: 4em;
-    margin-bottom: 20px;
+.task-completion-message h3 {
+    color: #155724;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+.task-completion-message p {
+    color: #155724;
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.task-completion-message .completion-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .event-card {
-        margin: 10px;
+        margin-bottom: 12px;
     }
     
-    .stream-header {
-        margin: 10px;
-        font-size: 1.1em;
-        padding: 15px;
-    }
-    
-    .event-header {
+    .complete-event .event-content {
+        padding: 16px;
         font-size: 1em;
-        padding: 12px 14px;
-    }
-    
-    .event-content {
-        padding: 14px;
-        font-size: 0.95em;
     }
 }
