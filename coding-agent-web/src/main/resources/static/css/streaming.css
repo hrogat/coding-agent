@@ -541,6 +541,14 @@ h1 {
     border-left: 5px solid #28a745;
 }
 
+.finish-task-timestamp {
+    color: #6c757d;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
+
 .finish-task-footer {
     display: flex;
     align-items: center;

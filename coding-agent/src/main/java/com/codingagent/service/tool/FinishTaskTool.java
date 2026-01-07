@@ -2,6 +2,7 @@ package com.codingagent.service.tool;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -30,7 +31,14 @@ public class FinishTaskTool implements Tool {
     public String execute(String parameters) {
         String summary = extractSummary(parameters);
         logger.info("✅ Task completed: {}", summary);
-        return "TASK_COMPLETE: " + summary;
+        
+        // Return a structured JSON response for better formatting
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("status", "TASK_COMPLETE");
+        response.put("summary", summary);
+        response.put("timestamp", System.currentTimeMillis());
+        
+        return response.toString();
     }
 
     private String extractSummary(String parameters) {
