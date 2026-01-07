@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = JSON.parse(result);
                 const summary = response.summary || 'Task completed successfully';
-                const timestamp = response.timestamp ? new Date(response.timestamp).toLocaleString() : 'Just now';
+                const timestamp = response.timestamp || 'Just now';
                 
                 return `
                     <div class="finish-task-container">

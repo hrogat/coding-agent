@@ -7,11 +7,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @Component
 public class FinishTaskTool implements Tool {
 
     private static final Logger logger = LoggerFactory.getLogger(FinishTaskTool.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            .withZone(ZoneId.systemDefault());
 
     @Override
     public String getName() {
@@ -30,13 +36,15 @@ public class FinishTaskTool implements Tool {
     @Override
     public String execute(String parameters) {
         String summary = extractSummary(parameters);
+        String formattedTimestamp = formatter.format(Instant.now());
         logger.info("✅ Task completed: {}", summary);
         
         // Return a structured JSON response for better formatting
         ObjectNode response = objectMapper.createObjectNode();
         response.put("status", "TASK_COMPLETE");
         response.put("summary", summary);
-        response.put("timestamp", System.currentTimeMillis());
+        response.put("timestamp", formattedTimestamp);
+        response.put("unixTimestamp", System.currentTimeMillis());
         
         return response.toString();
     }
