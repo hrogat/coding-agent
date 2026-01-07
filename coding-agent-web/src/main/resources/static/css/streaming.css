@@ -10,7 +10,7 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-event-card {
+.event-card {
     margin: 15px 20px;
     border-radius: 12px;
     overflow: hidden;
@@ -30,7 +30,7 @@ event-card {
     }
 }
 
-event-header {
+.event-header {
     padding: 14px 18px;
     font-weight: 600;
     font-size: 1.1em;
@@ -39,7 +39,7 @@ event-header {
     gap: 10px;
 }
 
-event-content {
+.event-content {
     padding: 18px;
     background: white;
     line-height: 1.7;
@@ -47,7 +47,7 @@ event-content {
     color: #2c3e50;
 }
 
-event-content pre {
+.event-content pre {
     background: #f8f9fa;
     padding: 14px;
     border-radius: 8px;
@@ -100,6 +100,7 @@ event-content pre {
     animation: pulse 1.5s ease-in-out;
     position: relative;
     overflow: hidden;
+    margin: 30px 20px;
 }
 
 .complete-event::before {
@@ -115,11 +116,12 @@ event-content pre {
 .complete-event .event-header {
     background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
     color: white;
-    font-size: 1.3em;
-    padding: 20px;
+    font-size: 1.5em;
+    padding: 25px;
     text-align: center;
     justify-content: center;
     position: relative;
+    font-weight: 700;
 }
 
 .complete-event .event-content {
@@ -127,7 +129,7 @@ event-content pre {
     font-weight: 500;
     font-size: 1.1em;
     text-align: center;
-    padding: 25px;
+    padding: 30px;
 }
 
 .completion-container {
@@ -135,10 +137,10 @@ event-content pre {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 20px;
     max-width: 800px;
     margin: 0 auto;
-    padding: 30px;
+    padding: 40px;
     background: rgba(255, 255, 255, 0.98);
     border-radius: 16px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
@@ -146,7 +148,7 @@ event-content pre {
 }
 
 .completion-icon {
-    font-size: 4em;
+    font-size: 5em;
     margin-bottom: 10px;
     animation: bounce 1s ease-in-out;
     color: #28a745;
@@ -154,7 +156,7 @@ event-content pre {
 
 .completion-heading {
     color: #28a745;
-    font-size: 2em;
+    font-size: 2.2em;
     margin-bottom: 10px;
     font-weight: 700;
     text-align: center;
@@ -164,12 +166,12 @@ event-content pre {
 
 .completion-message {
     color: #2c3e50;
-    font-size: 1.3em;
+    font-size: 1.4em;
     line-height: 1.8;
     margin-bottom: 0;
     max-width: 100%;
     text-align: center;
-    padding: 20px;
+    padding: 25px;
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -182,18 +184,18 @@ event-content pre {
     justify-content: center;
     gap: 8px;
     margin-top: 15px;
-    padding: 12px 18px;
+    padding: 15px 20px;
     background: rgba(40, 167, 69, 0.15);
     border-radius: 10px;
-    font-size: 1em;
+    font-size: 1.1em;
     font-weight: 600;
 }
 
 .completion-checkmark {
     color: white;
     background: #28a745;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -212,12 +214,12 @@ event-content pre {
     background: #f8d7da;
 }
 
-error-event .event-header {
+.error-event .event-header {
     background: #dc3545;
     color: white;
 }
 
-error-event .event-content {
+.error-event .event-content {
     background: transparent;
     color: #721c24;
     font-weight: 500;
@@ -266,8 +268,8 @@ error-event .event-content {
         box-shadow: 0 8px 20px rgba(40, 167, 69, 0.2);
     }
     50% {
-        transform: scale(1.03);
-        box-shadow: 0 15px 30px rgba(40, 167, 69, 0.35);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(40, 167, 69, 0.4);
     }
     100% {
         transform: scale(1);
@@ -280,10 +282,10 @@ error-event .event-content {
         transform: translateY(0);
     }
     40% {
-        transform: translateY(-25px);
+        transform: translateY(-30px);
     }
     60% {
-        transform: translateY(-12px);
+        transform: translateY(-15px);
     }
 }
 
@@ -310,20 +312,20 @@ error-event .event-content {
     }
     
     .completion-heading {
-        font-size: 1.6em;
+        font-size: 1.8em;
     }
     
     .completion-message {
-        font-size: 1.2em;
+        font-size: 1.3em;
         max-width: 95%;
     }
     
     .completion-container {
         max-width: 95%;
-        padding: 20px;
+        padding: 25px;
     }
     
     .completion-icon {
-        font-size: 3em;
+        font-size: 3.5em;
     }
 }
