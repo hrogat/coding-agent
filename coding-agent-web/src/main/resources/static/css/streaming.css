@@ -536,12 +536,13 @@ h1 {
     max-width: 800px;
     margin: 0 auto;
     padding: 40px;
-    background: rgba(255, 255, 255, 0.98);
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    border: 2px solid #b8daff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 2px solid #2e7d32;
     position: relative;
     overflow: hidden;
+    animation: slideUp 0.6s ease-out;
 }
 
 .finish-task-container::before {
@@ -550,21 +551,21 @@ h1 {
     top: 0;
     left: 0;
     right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #007bff, #0056b3);
+    height: 6px;
+    background: linear-gradient(90deg, #2e7d32, #1b5e20);
 }
 
 .finish-task-icon {
     font-size: 5em;
     margin-bottom: 10px;
     animation: bounce 1s ease-in-out;
-    color: #007bff;
-    text-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-    filter: drop-shadow(0 2px 4px rgba(0, 123, 255, 0.2));
+    color: #2e7d32;
+    text-shadow: 0 4px 8px rgba(46, 125, 50, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(46, 125, 50, 0.2));
 }
 
 .finish-task-heading {
-    color: #007bff;
+    color: #2e7d32;
     font-size: 2.2em;
     margin-bottom: 10px;
     font-weight: 700;
@@ -581,10 +582,10 @@ h1 {
     max-width: 100%;
     text-align: center;
     padding: 25px;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.98);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-left: 5px solid #007bff;
+    border-left: 5px solid #2e7d32;
     transition: all 0.3s ease;
     position: relative;
 }
@@ -609,7 +610,7 @@ h1 {
     gap: 8px;
     margin-top: 15px;
     padding: 15px 20px;
-    background: rgba(0, 123, 255, 0.15);
+    background: rgba(46, 125, 50, 0.15);
     border-radius: 10px;
     font-size: 1.1em;
     font-weight: 600;
@@ -617,13 +618,13 @@ h1 {
 }
 
 .finish-task-footer:hover {
-    background: rgba(0, 123, 255, 0.25);
+    background: rgba(46, 125, 50, 0.25);
     transform: translateY(-1px);
 }
 
 .finish-task-checkmark {
     color: white;
-    background: #007bff;
+    background: #2e7d32;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -631,18 +632,29 @@ h1 {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
     transition: all 0.3s ease;
 }
 
 .finish-task-checkmark:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
 }
 
 .finish-task-status {
-    color: #007bff;
+    color: #2e7d32;
     font-weight: 600;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive adjustments for finish_task */
@@ -784,17 +796,6 @@ h1 {
 .task-complete-status {
     color: #2e7d32;
     font-weight: 600;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* Responsive adjustments for task complete */

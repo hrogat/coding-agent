@@ -191,27 +191,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const timestamp = response.timestamp || 'Just now';
                 
                 return `
-                    <div class="task-complete-container">
-                        <div class="task-complete-icon">🎉</div>
-                        <h3 class="task-complete-heading">Task Complete!</h3>
-                        <p class="task-complete-message">${escapeHtml(summary)}</p>
-                        <div class="task-complete-timestamp">Completed at: ${escapeHtml(timestamp)}</div>
-                        <div class="task-complete-footer">
-                            <span class="task-complete-checkmark">✓</span>
-                            <span class="task-complete-status">Operation completed successfully</span>
+                    <div class="finish-task-container">
+                        <div class="finish-task-icon">🎉</div>
+                        <h3 class="finish-task-heading">Task Complete!</h3>
+                        <p class="finish-task-message">${escapeHtml(summary)}</p>
+                        <div class="finish-task-timestamp">Completed at: ${escapeHtml(timestamp)}</div>
+                        <div class="finish-task-footer">
+                            <span class="finish-task-checkmark">✓</span>
+                            <span class="finish-task-status">Operation completed successfully</span>
                         </div>
                     </div>
                 `;
             } catch (e) {
                 // Fallback to simple formatting if JSON parsing fails
                 return `
-                    <div class="task-complete-container">
-                        <div class="task-complete-icon">🎉</div>
-                        <h3 class="task-complete-heading">Task Complete!</h3>
-                        <p class="task-complete-message">${escapeHtml(result)}</p>
-                        <div class="task-complete-footer">
-                            <span class="task-complete-checkmark">✓</span>
-                            <span class="task-complete-status">Operation completed successfully</span>
+                    <div class="finish-task-container">
+                        <div class="finish-task-icon">🎉</div>
+                        <h3 class="finish-task-heading">Task Complete!</h3>
+                        <p class="finish-task-message">${escapeHtml(result)}</p>
+                        <div class="finish-task-footer">
+                            <span class="finish-task-checkmark">✓</span>
+                            <span class="finish-task-status">Operation completed successfully</span>
                         </div>
                     </div>
                 `;
