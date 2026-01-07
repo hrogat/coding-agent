@@ -184,13 +184,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<div class="completion-container">
-                        <div class="completion-icon">🎉</div>
-                        <h3 class="completion-heading">Task Complete!</h3>
-                        <p class="completion-message">${escapeHtml(result)}</p>
-                        <div class="completion-footer">
-                            <span class="completion-checkmark">✓</span>
-                            <span class="completion-status">Operation completed successfully</span>
+            return `<div class="finish-task-container">
+                        <div class="finish-task-icon">🎉</div>
+                        <h3 class="finish-task-heading">Task Complete!</h3>
+                        <p class="finish-task-message">${escapeHtml(result)}</p>
+                        <div class="finish-task-footer">
+                            <span class="finish-task-checkmark">✓</span>
+                            <span class="finish-task-status">Operation completed successfully</span>
                         </div>
                     </div>`;
         }
