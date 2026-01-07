@@ -174,7 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
+            return `<div class="finish-task-message">
+                        <strong>✅ Task Completed Successfully!</strong>
+                        <p>${escapeHtml(result)}</p>
+                    </div>`;
         }
         
         // Default formatting
