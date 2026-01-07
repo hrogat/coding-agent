@@ -10,7 +10,7 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.event-card {
+event-card {
     margin: 15px 20px;
     border-radius: 12px;
     overflow: hidden;
@@ -30,7 +30,7 @@
     }
 }
 
-.event-header {
+event-header {
     padding: 14px 18px;
     font-weight: 600;
     font-size: 1.1em;
@@ -39,7 +39,7 @@
     gap: 10px;
 }
 
-.event-content {
+event-content {
     padding: 18px;
     background: white;
     line-height: 1.7;
@@ -47,7 +47,7 @@
     color: #2c3e50;
 }
 
-.event-content pre {
+event-content pre {
     background: #f8f9fa;
     padding: 14px;
     border-radius: 8px;
@@ -184,4 +184,17 @@
         padding: 14px;
         font-size: 0.95em;
     }
+}
+
+/* Task Complete Message Styling */
+.task-complete-message {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 5px solid #28a745;
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #155724;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
 }
