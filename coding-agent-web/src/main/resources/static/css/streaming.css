@@ -507,6 +507,7 @@ h1 {
     border-radius: 16px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     border: 2px solid #d4edda;
+    animation: slideIn 0.4s ease-out;
 }
 
 .finish-task-icon {
@@ -569,6 +570,27 @@ h1 {
 .finish-task-status {
     color: #28a745;
     font-weight: 600;
+}
+
+/* Responsive adjustments for finish_task */
+@media (max-width: 768px) {
+    .finish-task-container {
+        max-width: 95%;
+        padding: 25px;
+    }
+    
+    .finish-task-icon {
+        font-size: 3.5em;
+    }
+    
+    .finish-task-heading {
+        font-size: 1.8em;
+    }
+    
+    .finish-task-message {
+        font-size: 1.3em;
+        max-width: 95%;
+    }
 }
 
 /* Enhanced formatting for finish_task and Task Complete */
