@@ -665,3 +665,115 @@ h1 {
         max-width: 95%;
     }
 }
+
+/* Improved finish task styling */
+.finish-task-container {
+    border: 3px solid #007bff;
+    background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
+    animation: pulse 1.5s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    margin: 30px 20px;
+}
+
+.finish-task-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+}
+
+.finish-task-icon {
+    font-size: 5em;
+    margin-bottom: 10px;
+    animation: bounce 1s ease-in-out;
+    color: #007bff;
+    text-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(0, 123, 255, 0.2));
+}
+
+.finish-task-heading {
+    color: #007bff;
+    font-size: 2.2em;
+    margin-bottom: 10px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.3;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.finish-task-message {
+    color: #2c3e50;
+    font-size: 1.4em;
+    line-height: 1.8;
+    margin-bottom: 0;
+    max-width: 100%;
+    text-align: center;
+    padding: 25px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #007bff;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.finish-task-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.finish-task-timestamp {
+    color: #6c757d;
+    font-size: 0.9em;
+    font-style: italic;
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
+
+.finish-task-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 15px 20px;
+    background: rgba(0, 123, 255, 0.15);
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.finish-task-footer:hover {
+    background: rgba(0, 123, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.finish-task-checkmark {
+    color: white;
+    background: #007bff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.finish-task-checkmark:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.finish-task-status {
+    color: #007bff;
+    font-weight: 600;
+}
