@@ -162,7 +162,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
                                 sink.next(StreamEvent.builder()
                                         .type(StreamEvent.EventType.TASK_COMPLETE)
                                         .complete(true)
-                                        .message("Task completed successfully: " + result)
+                                        .message("Task completed successfully:\n\n" + result)
                                         .build());
                             }
                         }
@@ -352,7 +352,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
         if (text == null || text.length() <= maxLength) {
             return text;
         }
-        return text.substring(0, maxLength) + "...";
+        return text.substring(0, maxLength) + "... ";
     }
 
     protected abstract String buildSystemPrompt();
