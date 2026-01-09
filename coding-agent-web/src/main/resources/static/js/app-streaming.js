@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content"><pre>${escapeHtml(event.message)}</pre></div>
                     </div>
                 `;
                 break;
