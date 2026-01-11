@@ -161,10 +161,14 @@ public abstract class StreamingToolBasedAgent implements Agent {
                                 taskComplete.set(true);
                                 // Extract the summary from the result
                                 String summary = result.replace("TASK_COMPLETE: ", "");
+                                // Ensure the summary ends with a new line for proper formatting
+                                if (!summary.endsWith("\n")) {
+                                    summary = summary + "\n";
+                                }
                                 sink.next(StreamEvent.builder()
                                         .type(StreamEvent.EventType.TASK_COMPLETE)
                                         .complete(true)
-                                        .message("Task completed successfully:\n\n" + summary)
+                                        .message("Task completed successfully:" + "\n\n" + summary)
                                         .build());
                             }
                         }
@@ -354,7 +358,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
         if (text == null || text.length() <= maxLength) {
             return text;
         }
-        return text.substring(0, maxLength) + "...";
+        return text.substring(0, maxLength) + "... ";
     }
 
     protected abstract String buildSystemPrompt();
