@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (toolName === 'finish_task') {
-            return `<strong>${escapeHtml(result)}</strong>`;
+            return `<pre>${escapeHtml(result)}</pre>`;
         }
         
         // Default formatting
