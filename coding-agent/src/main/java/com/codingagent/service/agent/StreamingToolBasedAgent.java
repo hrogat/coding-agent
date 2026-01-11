@@ -39,7 +39,12 @@ public abstract class StreamingToolBasedAgent implements Agent {
         StringBuilder result = new StringBuilder();
         executeStream(prompt, directoryContext, null).toStream().forEach(event -> {
             if (event.getMessage() != null) {
-                result.append(event.getMessage()).append("\n");
+                // Do not append extra new line for TASK_COMPLETE events
+                if (event.getType() == StreamEvent.EventType.TASK_COMPLETE) {
+                    result.append(event.getMessage());
+                } else {
+                    result.append(event.getMessage()).append("\n");
+                }
             }
         });
         return result.toString();
@@ -168,7 +173,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
                                 sink.next(StreamEvent.builder()
                                         .type(StreamEvent.EventType.TASK_COMPLETE)
                                         .complete(true)
-                                        .message("Task completed successfully:" + "\n\n" + summary)
+                                        .message("Task completed successfully:\n\n" + summary)
                                         .build());
                             }
                         }
