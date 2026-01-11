@@ -106,13 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
                 
             case 'TASK_COMPLETE':
+                const formattedMessage = event.message ? event.message.replace(/\n/g, '<br>') : '';
                 eventHtml = `
                     <div class="event-card complete-event">
                         <div class="event-header">
                             <span>✅</span>
                             <span>Task Complete</span>
                         </div>
-                        <div class="event-content">${escapeHtml(event.message)}</div>
+                        <div class="event-content">${formattedMessage}</div>
                     </div>
                 `;
                 break;
