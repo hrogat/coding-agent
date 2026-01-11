@@ -30,7 +30,7 @@ public class FinishTaskTool implements Tool {
     public String execute(String parameters) {
         String summary = extractSummary(parameters);
         logger.info("✅ Task completed: {}", summary);
-        return "TASK_COMPLETE: " + summary;
+        return summary;
     }
 
     private String extractSummary(String parameters) {
