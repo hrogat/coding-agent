@@ -22,7 +22,7 @@ public abstract class StreamingToolBasedAgent implements Agent {
     private static final int MAX_FILE_CONTENT_LOG_LENGTH = 200;
     private static final int MAX_DISPLAY_CONTENT_LENGTH = 500;
     private static final Pattern TOOL_CALL_PATTERN = Pattern.compile(
-            "TOOL:\\s*(\\w+)\\s*(\\{.*?\\}(?=\\s*(?:TOOL:|Assistant:|$)))",
+            "TOOL:\s*(\w+)\s*(\{.*?\}(?=\s*(?:TOOL:|Assistant:|$)))",
             Pattern.DOTALL
     );
 
@@ -159,10 +159,12 @@ public abstract class StreamingToolBasedAgent implements Agent {
                             
                             if (toolCall.toolName.equals("finish_task")) {
                                 taskComplete.set(true);
+                                // Extract the summary from the result
+                                String summary = result.replace("TASK_COMPLETE: ", "");
                                 sink.next(StreamEvent.builder()
                                         .type(StreamEvent.EventType.TASK_COMPLETE)
                                         .complete(true)
-                                        .message("Task completed successfully: " + result)
+                                        .message("Task completed successfully:\n\n" + summary)
                                         .build());
                             }
                         }
